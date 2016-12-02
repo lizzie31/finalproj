@@ -1,6 +1,8 @@
 package final_project;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.TreeMap;
@@ -19,14 +21,42 @@ public class aaa {
 	{
 		
 	String str;
-	File path=new File("C:/final project/articles/scimakelatex.19302.mike+abc.ester+def.pdf");
+	String file_name;
+	String content = null;
+	 BufferedWriter writer = null;
+	for (int i=1; i<9;i++)
+	{
+		file_name= Integer.toString(i); 
+	
+	File path=new File("C:/articles/"+ file_name + ".pdf");
 	//COSDocument doc=new COSDocument.load();
 	PDDocument paper=PDDocument.load(path);
     PDFTextStripper textStripper = new PDFTextStripper();
-    String content = textStripper.getText(paper);
-
+   content  = content + textStripper.getText(paper);
+	}
     
     System.out.println(content);
+   
+    try
+    {
+        writer = new BufferedWriter( new FileWriter( "try.txt"));
+        writer.write( content);
+
+    }
+    catch ( IOException e)
+    {
+    }
+    finally
+    {
+        try
+        {
+            if ( writer != null)
+            writer.close( );
+        }
+        catch ( IOException e)
+        {
+        }
+    }
 	//System.out.printf("hello");
 	//PDStream ps=new PDStream(paper);
 //	PDDocument.
