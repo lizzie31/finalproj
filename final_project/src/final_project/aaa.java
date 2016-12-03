@@ -20,7 +20,7 @@ public class aaa {
 	public static void main(String [] args) throws IOException
 	{
 		
-	String str="ωπα";
+	String str="χωπα";
 	String file_name;
 	String content = null;
 	 BufferedWriter writer = null;
