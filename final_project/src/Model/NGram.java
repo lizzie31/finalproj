@@ -30,6 +30,14 @@ public class NGram
  {
 	 this.ngram=ngram;
  }
+
+public String getNgram() {
+	return ngram;
+}
+
+public void setNgram(String ngram) {
+	this.ngram = ngram;
+}
 }
 
 

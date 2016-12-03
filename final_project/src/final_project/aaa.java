@@ -30,9 +30,8 @@ public class aaa {
 
 	String StrWithoutpunctuation=null;  
 	String file_name;
+	 Dictionary d = new Dictionary();
 	String content = null; ////dfsdfds
-	 BufferedWriter writer = null;
-	 BufferedReader reader = null;
 	for (int i=1; i<12;i++)
 	{
 		file_name= Integer.toString(i); 
@@ -50,60 +49,32 @@ public class aaa {
     
   // System.out.println(StrWithoutpunctuation);
   // System.out.println(StrWithoutpunctuation.length());
-    try
-    {
-        writer = new BufferedWriter( new FileWriter( "try.txt"));
-        writer.write( StrWithoutpunctuation);
 
-    }
-    finally
-    {
-        try
-        {
-            if ( writer != null)
-            writer.close( );
-        }
-        catch ( IOException e)
-        {
-        }
-    }
-    try
-    {
-        reader = new BufferedReader( new FileReader( "try.txt"));
-        String line;
-        while ((line = reader.readLine()) != null) { 
-        CreateNgramsDic(line);
-        }
-    }
-    finally
-    {
-        try
-        {
-            if ( reader != null)
-            	reader.close( );
-        }
-        catch ( IOException e)
-        {
-        }
-    }
-
-    
+   
+      
+        CreateNgramsDic(StrWithoutpunctuation,d);
+     for(NGram n : d.getDic()){
+        
+        System.out.println(n.getNgram());
+  
+     }
+     System.out.println(d.getDic().size());
 	}
-public static void CreateNgramsDic(String StrWithoutpunctuation) 
+public static void CreateNgramsDic(String StrWithoutpunctuation,Dictionary d) 
 {
 	 String str=null;
 	 int flag;
-	 Dictionary d = new Dictionary();
-	 for (int i=1;i<StrWithoutpunctuation.length();i++)
+	
+	 for (int i=1;i<StrWithoutpunctuation.length()-3;i++)
 	 {
 		 str = StrWithoutpunctuation.substring(i,i+3);
 	
 			 NGram ngram = new NGram(str);
 			 d.getDic().add(ngram);
-			 System.out.println(str);
+		
 		}
 		 }
 		 
-	
+
 
 }

@@ -19,4 +19,6 @@ public class Dictionary {
 	{
 		this.Dic = new ArrayList<NGram>();
 	}
+
+
 }
