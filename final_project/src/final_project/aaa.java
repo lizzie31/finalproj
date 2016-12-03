@@ -20,7 +20,11 @@ public class aaa {
 	public static void main(String [] args) throws IOException
 	{
 		
+<<<<<<< HEAD
 	String str;  
+=======
+	String str="aa";
+>>>>>>> branch 'master' of https://github.com/lizzie31/finalproj
 	String file_name;
 	String content = null; ////dfsdfds
 	 BufferedWriter writer = null;
