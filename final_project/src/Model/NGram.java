@@ -26,6 +26,10 @@ public class NGram
     // like a dice, generates a series of random numbers
  private String ngram;
   
+ public NGram(String ngram)
+ {
+	 this.ngram=ngram;
+ }
 }
 
 

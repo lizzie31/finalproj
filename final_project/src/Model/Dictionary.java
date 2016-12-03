@@ -15,4 +15,8 @@ public class Dictionary {
 		Dic = dic;
 	}
 
+	public Dictionary()
+	{
+		this.Dic = new ArrayList<NGram>();
+	}
 }
