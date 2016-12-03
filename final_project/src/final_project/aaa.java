@@ -20,9 +20,9 @@ public class aaa {
 	public static void main(String [] args) throws IOException
 	{
 		
-	String str;
+	String str;  
 	String file_name;
-	String content = null;
+	String content = null; ////dfsdfds
 	 BufferedWriter writer = null;
 	for (int i=1; i<9;i++)
 	{
