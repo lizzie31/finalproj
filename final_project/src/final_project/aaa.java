@@ -8,6 +8,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.TreeMap;
 
 import org.apache.pdfbox.*;
@@ -17,6 +18,8 @@ import org.apache.pdfbox.tools.PDFBox;
 
 import Model.Dictionary;
 import Model.NGram;
+import Model.Paper;
+import Model.Part;
 
 import org.apache.pdfbox.pdmodel.common.PDStream;
 import org.apache.pdfbox.pdmodel.common.function.PDFunction;
@@ -27,7 +30,7 @@ public class aaa {
 	
 	public static void main(String [] args) throws IOException
 	{
-
+  ArrayList<Paper> papers = new ArrayList<Paper>();
 	String StrWithoutpunctuation=null;  
 	String file_name;
 	 Dictionary d = new Dictionary();
@@ -49,17 +52,47 @@ public class aaa {
     
   // System.out.println(StrWithoutpunctuation);
   // System.out.println(StrWithoutpunctuation.length());
-
-   
-      
-        CreateNgramsDic(StrWithoutpunctuation,d);
-     for(NGram n : d.getDic()){
-        
+     
+    CreateNgramsDic(StrWithoutpunctuation,d);
+    
+	for (int i=1; i<12;i++)
+	{
+		file_name= Integer.toString(i);  
+      papers.add(CreatePapers(file_name));
+	}
+	CreateParts(papers);
+    for(NGram n : d.getDic()){      
         System.out.println(n.getNgram());
   
      }
-     System.out.println(d.getDic().size());
+  
 	}
+private static Paper CreatePapers(String file_name) throws IOException {
+	
+	String content;
+	File path=new File("C:/articles/"+ file_name + ".pdf");
+	
+	PDDocument paper=PDDocument.load(path);
+    PDFTextStripper textStripper = new PDFTextStripper();
+    content  = (textStripper.getText(paper)).replaceAll("\\W", "");
+    content = content.replaceAll("\\d", "");
+    paper.close();
+    return new Paper(content,Integer.parseInt(file_name));		
+	}
+
+private static void CreateParts(ArrayList<Paper> papers)
+{
+	Part p = null;
+	int j =1;
+	 for (Paper OnePaper : papers) {
+	    for(int i = 0; i<OnePaper.getContent().length();i+=1000)
+	    {
+	    	p = new Part(OnePaper.getContent().substring(i,i+1000),OnePaper.getPaperNumber(),j);
+	    	OnePaper.getParts().add(p);
+	    	j++;
+	    }
+	 }
+}
 public static void CreateNgramsDic(String StrWithoutpunctuation,Dictionary d) 
 {
 	 String str=null;
@@ -68,13 +101,16 @@ public static void CreateNgramsDic(String StrWithoutpunctuation,Dictionary d)
 	 for (int i=1;i<StrWithoutpunctuation.length()-3;i++)
 	 {
 		 str = StrWithoutpunctuation.substring(i,i+3);
-	
-			 NGram ngram = new NGram(str);
+			
+
+		 if((d.contains(d.getDic(), str))==false)
+		 {
+			 NGram ngram = new NGram(str);			
 			 d.getDic().add(ngram);
+		 }
 		
 		}
 		 }
-		 
 
 
 }
