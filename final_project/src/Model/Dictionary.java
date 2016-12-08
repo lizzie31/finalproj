@@ -5,24 +5,30 @@ import java.util.ArrayList;
 
 public class Dictionary {
 	
-	private ArrayList <NGram> Dic;
+
+	private ArrayList<String> Dic;
+	
+	  public Dictionary(ArrayList<String> dic) {
+		  this.Dic=dic;
+	  }
+	
    
-	public ArrayList<NGram> getDic() {
+	public ArrayList<String> getDic() {
 		return Dic;
 	}
 
-	public void setDic(ArrayList<NGram> dic) {
+	public void setDic(ArrayList<String> dic) {
 		Dic = dic;
 	}
 
 	public Dictionary()
 	{
-		this.Dic = new ArrayList<NGram>();
+		this.Dic = new ArrayList<String>();
 	}
 	
-public boolean contains(ArrayList<NGram> list, String name) {
-	    for (NGram item : list) {
-	        if (item.getNgram().equals(name)) {
+public boolean contains(ArrayList<String> list, String name) {
+	    for (String item : list) {
+	        if (item.equals(name)) {
 	            return true;
 	        }
 	    }

@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.TreeMap;
+import java.io.IOException;
+import java.sql.*;
 
 import org.apache.pdfbox.*;
 import org.apache.pdfbox.cos.COSDocument;
@@ -28,71 +30,64 @@ import org.apache.pdfbox.text.PDFTextStripper;
 
 public class aaa {
 	
-	public static void main(String [] args) throws IOException
+	public static void main(String [] args) throws IOException, SQLException
 	{
-  ArrayList<Paper> papers = new ArrayList<Paper>();
-	String StrWithoutpunctuation=null;  
-	String file_name;
-	 Dictionary d = new Dictionary();
-	String content = null; ////dfsdfds
-	for (int i=1; i<12;i++)
-	{
+	   DBconn DbConn=new DBconn();
+       ArrayList<Paper> papers = new ArrayList<Paper>();
+	   String StrWithoutpunctuation="";  
+	   String file_name;
+	   String content = ""; 
+	   DbConn.openConnectionDB();
+	   Dictionary d =DbConn.GetDicFromDB();
+	  for (int i=1; i<12;i++)
+	  {
 		file_name= Integer.toString(i); 
+		Paper paper=CreatePapers(file_name,d); 
+        papers.add(paper);
+       // content=content+paper.getContent();
+	  }
+    //  StrWithoutpunctuation = content.replaceAll("\\W", "");
+    //  StrWithoutpunctuation = StrWithoutpunctuation.replaceAll("\\d", "");
+     // CreateNgramsDic(StrWithoutpunctuation,d);
+	}
+
+  
 	
-	File path=new File("C:/articles/"+ file_name + ".pdf");
-	//COSDocument doc=new COSDocument.load();
-	PDDocument paper=PDDocument.load(path);
-    PDFTextStripper textStripper = new PDFTextStripper();
-   content  = content + textStripper.getText(paper);
-   StrWithoutpunctuation = content.replaceAll("\\W", "");
-  StrWithoutpunctuation = StrWithoutpunctuation.replaceAll("\\d", "");
-   paper.close();
-   
-	}
-    
-  // System.out.println(StrWithoutpunctuation);
-  // System.out.println(StrWithoutpunctuation.length());
-     
-    CreateNgramsDic(StrWithoutpunctuation,d);
-    
-	for (int i=1; i<12;i++)
-	{
-		file_name= Integer.toString(i);  
-      papers.add(CreatePapers(file_name));
-	}
-	CreateParts(papers);
-    for(NGram n : d.getDic()){      
-        System.out.println(n.getNgram());
-  
-     }
-  
-	}
-private static Paper CreatePapers(String file_name) throws IOException {
+private static Paper CreatePapers(String file_name,Dictionary d) throws IOException 
+ {
 	
 	String content;
 	File path=new File("C:/articles/"+ file_name + ".pdf");
-	
 	PDDocument paper=PDDocument.load(path);
     PDFTextStripper textStripper = new PDFTextStripper();
     content  = (textStripper.getText(paper)).replaceAll("\\W", "");
     content = content.replaceAll("\\d", "");
     paper.close();
-    return new Paper(content,Integer.parseInt(file_name));		
-	}
+    Paper p=new Paper(content,Integer.parseInt(file_name));	
+    CreateParts(p,d.getDic());
+    return p;
+    	
+    
+ }
 
-private static void CreateParts(ArrayList<Paper> papers)
+private static void CreateParts(Paper paper,ArrayList<String> dic)
 {
-	Part p = null;
+	Part part = null;
 	int j =1;
-	 for (Paper OnePaper : papers) {
-	    for(int i = 0; i<OnePaper.getContent().length();i+=1000)
+	    for(int i = 0; i<paper.getContent().length();i+=1000)
 	    {
-	    	p = new Part(OnePaper.getContent().substring(i,i+1000),OnePaper.getPaperNumber(),j);
-	    	OnePaper.getParts().add(p);
+	    	String substr=paper.getContent().substring(i);
+	    	if(substr.length()>1000)
+	    	  part = new Part(paper.getContent().substring(i,i+1001),paper.getPaperNumber(),j);    	
+	    	else
+	    	  part = new Part(substr,paper.getPaperNumber(),j);
+	    	part.CreateHistogram(dic);
+	    	paper.getParts().add(part);
 	    	j++;
 	    }
-	 }
+
 }
+
 public static void CreateNgramsDic(String StrWithoutpunctuation,Dictionary d) 
 {
 	 String str=null;
@@ -102,15 +97,14 @@ public static void CreateNgramsDic(String StrWithoutpunctuation,Dictionary d)
 	 {
 		 str = StrWithoutpunctuation.substring(i,i+3);
 			
-
 		 if((d.contains(d.getDic(), str))==false)
 		 {
-			 NGram ngram = new NGram(str);			
-			 d.getDic().add(ngram);
+			 String ngram = str;			
+			 d.getDic().add(str);
 		 }
 		
-		}
-		 }
+	 }
+}
 
 
 }
