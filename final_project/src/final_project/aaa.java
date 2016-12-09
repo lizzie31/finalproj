@@ -97,7 +97,7 @@ public static void CreateNgramsDic(String StrWithoutpunctuation,Dictionary d)
 	 {
 		 str = StrWithoutpunctuation.substring(i,i+3);
 			
-		 if((d.contains(d.getDic(), str))==false)
+		 if((d.contains(d.getDic(),str))==false)
 		 {
 			 String ngram = str;			
 			 d.getDic().add(str);
