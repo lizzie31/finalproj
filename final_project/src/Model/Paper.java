@@ -12,6 +12,7 @@ public class Paper {
 		
 		this.content=content;
 		this.PaperNumber = Papernumber;
+		this.parts = new ArrayList<Part>();
 	}
 	public ArrayList<Part> getParts() {
 		return parts;

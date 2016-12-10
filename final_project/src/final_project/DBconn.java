@@ -9,6 +9,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 
 import Model.Dictionary;
+import Model.Histogram;
+import Model.Part;
 
 public class DBconn {
 	
@@ -16,7 +18,7 @@ public class DBconn {
 	public  void openConnectionDB(){
 		
 		String url="jdbc:sqlserver://localhost:1433" ;
-		String username="try";
+		String username="root";
 		String password="123456";
 
 	    try 
@@ -48,7 +50,42 @@ public class DBconn {
 	  
 	  
    }
+	public void createHistograms(Part p)  {
+		// TODO Auto-generated method stub
+		int i = 0;
+		int size = p.getHisto().getFreq().length;
+		String quary = "INSERT INTO Histograms VALUES(?, ?, ?)";
+		PreparedStatement preparedStatement;
+		try {
+			preparedStatement = conn.prepareStatement(quary);
+		
+		for(i=0; i< size ; i++)
+		{
+			
+		preparedStatement.setInt(1, p.getPartNumber());
+		preparedStatement.setInt(2, i);
+		preparedStatement.setInt(3, p.getHistogram().getFreq()[i]);
+
+		preparedStatement .executeUpdate();
+		}
+		
+		}
+		catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	public void createParts(Part p ,int PeparNumber, int partNumber) throws SQLException
+	{
+		String quary = "INSERT INTO Parts VALUES(?, ?, ?)";
+		PreparedStatement preparedStatement = conn.prepareStatement(quary);
+		preparedStatement.setString(1, p.getText());
+		preparedStatement.setInt(2, p.getPartNumber());
+		preparedStatement.setInt(3, p.getPaperNumner());
 	
+		// execute insert SQL stetement
+		preparedStatement .executeUpdate();
+	}
 	public void createDBDictionary(Dictionary d) throws SQLException
 	{
 
@@ -82,6 +119,7 @@ public class DBconn {
            
            return Dic;
 	}
+
 	
 	
 	

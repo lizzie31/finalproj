@@ -30,30 +30,39 @@ import org.apache.pdfbox.text.PDFTextStripper;
 
 public class aaa {
 	
+	public static DBconn DbConn=new DBconn();
+    public static ArrayList<Paper> papers= new ArrayList<Paper>();
+	
+     public aaa(){
+    
+     }
+     
 	public static void main(String [] args) throws IOException, SQLException
 	{
-	   DBconn DbConn=new DBconn();
-       ArrayList<Paper> papers = new ArrayList<Paper>();
+	  
 	   String StrWithoutpunctuation="";  
 	   String file_name;
-	   String content = ""; 
-	   DbConn.openConnectionDB();
-	   Dictionary d =DbConn.GetDicFromDB();
+	   String content = "";
+	   aaa.DbConn.openConnectionDB();
+	// Dictionary d = new Dictionary();
+      Dictionary d =DbConn.GetDicFromDB();
 	  for (int i=1; i<12;i++)
 	  {
 		file_name= Integer.toString(i); 
 		Paper paper=CreatePapers(file_name,d); 
-        papers.add(paper);
-       // content=content+paper.getContent();
+		aaa.papers.add(paper);
+       content=content+paper.getContent();
+       
 	  }
-    //  StrWithoutpunctuation = content.replaceAll("\\W", "");
-    //  StrWithoutpunctuation = StrWithoutpunctuation.replaceAll("\\d", "");
-     // CreateNgramsDic(StrWithoutpunctuation,d);
+   //  StrWithoutpunctuation = content.replaceAll("\\W", "");
+   //  StrWithoutpunctuation = StrWithoutpunctuation.replaceAll("\\d", "");
+   //   CreateNgramsDic(StrWithoutpunctuation,d);
+    //  aaa.DbConn.createDBDictionary(d);
 	}
 
   
 	
-private static Paper CreatePapers(String file_name,Dictionary d) throws IOException 
+private static Paper CreatePapers(String file_name,Dictionary d) throws IOException, SQLException 
  {
 	
 	String content;
@@ -70,7 +79,7 @@ private static Paper CreatePapers(String file_name,Dictionary d) throws IOExcept
     
  }
 
-private static void CreateParts(Paper paper,ArrayList<String> dic)
+private static void CreateParts(Paper paper,ArrayList<String> dic) throws SQLException
 {
 	Part part = null;
 	int j =1;
@@ -81,10 +90,13 @@ private static void CreateParts(Paper paper,ArrayList<String> dic)
 	    	  part = new Part(paper.getContent().substring(i,i+1001),paper.getPaperNumber(),j);    	
 	    	else
 	    	  part = new Part(substr,paper.getPaperNumber(),j);
-	    	part.CreateHistogram(dic);
+	    	DbConn.createParts(part, i, j);
+	    	part.CreateHistogram(dic , DbConn);
+	    	
 	    	paper.getParts().add(part);
 	    	j++;
 	    }
+	 
 
 }
 

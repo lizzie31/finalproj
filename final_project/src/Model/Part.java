@@ -2,12 +2,15 @@ package Model;
 
 import java.util.ArrayList;
 
+import final_project.DBconn;
+
 public class Part {
 	
  private String text;
  private int PaperNumner; 
  private int PartNumber;
  private Histogram histo;
+
  
  
  
@@ -16,6 +19,7 @@ public class Part {
 	 this.text = text;
 	 this.PaperNumner = paperNum;
 	 this.PartNumber=partNumber;
+	
  }
 public String getText() {
 	return text;
@@ -37,7 +41,7 @@ public void setPaperNumner(int paperNumner) {
 	PaperNumner = paperNumner;
 }
 
-public void CreateHistogram(ArrayList<String> dic)
+public void CreateHistogram(ArrayList<String> dic, DBconn DbConn)
 {
 	int v=dic.size();
 	this.histo=new Histogram(dic.size());
@@ -48,9 +52,23 @@ public void CreateHistogram(ArrayList<String> dic)
 	{	
 		histo.getFreq()[dic.indexOf(ngram)]++;
 	}
+
+	
 }
 	
-	
+	DbConn.createHistograms(this);
+}
+public int getPartNumber() {
+	return PartNumber;
+}
+public void setPartNumber(int partNumber) {
+	PartNumber = partNumber;
+}
+public Histogram getHisto() {
+	return histo;
+}
+public void setHisto(Histogram histo) {
+	this.histo = histo;
 }
 }
 
