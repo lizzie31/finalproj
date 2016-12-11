@@ -9,6 +9,10 @@ public class Histogram {
         freq = new int[n+1];
     }
 
+	public Histogram(int[] histogram) {
+		this.freq=histogram;
+	}
+
 	public int[] getFreq() {
 		return freq;
 	}

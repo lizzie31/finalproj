@@ -10,15 +10,24 @@ import java.util.ArrayList;
 
 import Model.Dictionary;
 import Model.Histogram;
+import Model.Paper;
 import Model.Part;
 
 public class DBconn {
 	
+	public static final int T=5;
 	Connection conn;
+	
+	public DBconn()
+	{
+		
+		openConnectionDB();
+		
+	}
 	public  void openConnectionDB(){
 		
 		String url="jdbc:sqlserver://localhost:1433" ;
-		String username="root";
+		String username="try";
 		String password="123456";
 
 	    try 
@@ -54,17 +63,19 @@ public class DBconn {
 		// TODO Auto-generated method stub
 		int i = 0;
 		int size = p.getHisto().getFreq().length;
-		String quary = "INSERT INTO Histograms VALUES(?, ?, ?)";
+		String quary = "INSERT INTO Histograms VALUES(?,?,?,?)";
 		PreparedStatement preparedStatement;
 		try {
 			preparedStatement = conn.prepareStatement(quary);
 		
 		for(i=0; i< size ; i++)
 		{
+
 			
-		preparedStatement.setInt(1, p.getPartNumber());
-		preparedStatement.setInt(2, i);
-		preparedStatement.setInt(3, p.getHistogram().getFreq()[i]);
+		preparedStatement.setInt(1, p.getPaperNumner());
+		preparedStatement.setInt(2, p.getPartNumber());
+		preparedStatement.setInt(3, i);
+		preparedStatement.setInt(4, p.getHistogram().getFreq()[i]);
 
 		preparedStatement .executeUpdate();
 		}
@@ -75,7 +86,41 @@ public class DBconn {
 			e.printStackTrace();
 		}
 	}
-	public void createParts(Part p ,int PeparNumber, int partNumber) throws SQLException
+	
+	public ArrayList<Paper> GetPapersFromDB(Dictionary d) throws SQLException
+	{
+		   ArrayList<Paper> papers=new ArrayList<Paper>();
+		   double spearman;
+           Statement sta = conn.createStatement();
+           for(int i=1;i<12;i++)
+           {
+        	 Paper paper=new Paper(i);
+        	 papers.add(paper);
+             String query = "select * from Parts where paperNumber="+i;
+             ResultSet rs = sta.executeQuery(query);
+             while (rs.next())
+             {
+            	 String contant=rs.getString(1);
+            	 int partnum=rs.getInt(2);
+            	// if(partnum>T)
+            	 //{
+                 //String query1 = "select * from PartDistanceFromPrev where paperNumber="+i+" AND partNumber="+partnum;
+                 //ResultSet rs1 = sta.executeQuery(query1);
+            	 
+            	 spearman=(double)this.GetPrevSpearmanFromDB(i, partnum);
+            	// }
+            	// else spearman=0;
+            	 Histogram histogram=this.GetHistogramFromDB(i,partnum,d.getDic().size());
+            	 Part paperPart=new Part(contant,i,partnum,histogram,spearman);
+            	 paper.getParts().add(paperPart);
+        	    
+     	   
+             }
+           }
+           
+           return papers;
+	}
+	public void createParts(Part p) throws SQLException //inert one part to db
 	{
 		String quary = "INSERT INTO Parts VALUES(?, ?, ?)";
 		PreparedStatement preparedStatement = conn.prepareStatement(quary);
@@ -86,6 +131,7 @@ public class DBconn {
 		// execute insert SQL stetement
 		preparedStatement .executeUpdate();
 	}
+	
 	public void createDBDictionary(Dictionary d) throws SQLException
 	{
 
@@ -119,6 +165,52 @@ public class DBconn {
            
            return Dic;
 	}
+	
+	
+	public Histogram GetHistogramFromDB(int papernum,int partnum,int n) throws SQLException
+	{
+	       int[] Histo=new int[n+1];
+           Statement sta = conn.createStatement();
+           String query = "select NgramIndexInDic,Rank from Histograms where paperPart="+partnum+"AND PaperNumber="+papernum;
+           ResultSet rs = sta.executeQuery(query);
+           while (rs.next()) {
+        	   Histo[rs.getInt(1)]=rs.getInt(2);
+           }
+           Histogram histogram=new Histogram(Histo);
+           
+           return histogram;
+		
+	}
+	
+	public void InsertDBSpearmanFromPrev(int paperNum,int partNum,float SpearmanCor) throws SQLException
+	{
+		String quary = "INSERT INTO PartDistanceFromPrev VALUES(?, ?, ?)";
+		PreparedStatement preparedStatement = conn.prepareStatement(quary);
+		preparedStatement.setInt(1,paperNum);
+		preparedStatement.setInt(2,partNum);
+		preparedStatement.setFloat(3,(float)SpearmanCor);
+	
+		// execute insert SQL stetement
+		preparedStatement .executeUpdate();
+		
+	}
+	
+	public double GetPrevSpearmanFromDB(int paperNum,int partNum) throws SQLException
+	{
+		if(partNum>T)
+		{
+	           Statement sta = conn.createStatement();
+	           String query = "select DistanceFromPrev from PartDistanceFromPrev where paperNumber="+paperNum+"AND partNumber="+partNum;
+	           ResultSet rs = sta.executeQuery(query);
+	           while (rs.next()) {
+	             return rs.getFloat(1);
+	           }
+		}
+		return 0;
+        
+	}
+	
+
 
 	
 	

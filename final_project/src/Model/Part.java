@@ -10,6 +10,7 @@ public class Part {
  private int PaperNumner; 
  private int PartNumber;
  private Histogram histo;
+ private double DistanceFromPrev;
 
  
  
@@ -19,14 +20,44 @@ public class Part {
 	 this.text = text;
 	 this.PaperNumner = paperNum;
 	 this.PartNumber=partNumber;
+	 this.DistanceFromPrev=0;
 	
  }
+public Part(String text, int paperNum, int partNumber, Histogram histogram,double spearmanCo) {
+	
+	 this.text = text;
+	 this.PaperNumner = paperNum;
+	 this.PartNumber=partNumber;
+	 this.DistanceFromPrev=spearmanCo;
+	 this.histo=histogram;
+	 
+	// TODO Auto-generated constructor stub
+}
+
+
+public Part(String text, int paperNum, int partNumber, Histogram histogram) {
+	
+	 this.text = text;
+	 this.PaperNumner = paperNum;
+	 this.PartNumber=partNumber;
+	 this.histo=histogram;
+	 
+	// TODO Auto-generated constructor stub
+}
 public String getText() {
 	return text;
 }
 public void setText(String text) {
 	this.text = text;
 }
+
+public double getDistanceFromPrev() {
+	return this.DistanceFromPrev;
+}
+public void setDistanceFromPrev(double DistanceFromPre) {
+	this.DistanceFromPrev = DistanceFromPre;
+}
+
 
 public Histogram getHistogram() {
 	return histo;
@@ -41,23 +72,8 @@ public void setPaperNumner(int paperNumner) {
 	PaperNumner = paperNumner;
 }
 
-public void CreateHistogram(ArrayList<String> dic, DBconn DbConn)
-{
-	int v=dic.size();
-	this.histo=new Histogram(dic.size());
-	for(int i=0;i<text.length()-3;i++)
-	{
-	String ngram=text.substring(i, i+3);
-	if(dic.contains(ngram))
-	{	
-		histo.getFreq()[dic.indexOf(ngram)]++;
-	}
 
-	
-}
-	
-	DbConn.createHistograms(this);
-}
+
 public int getPartNumber() {
 	return PartNumber;
 }

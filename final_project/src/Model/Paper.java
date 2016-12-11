@@ -8,7 +8,14 @@ public class Paper {
 	private ArrayList<Part> parts;
 	private int PaperNumber;
 	
-	public Paper(String content, int Papernumber) {
+	public Paper(int Papernumber)
+	{
+	  this.PaperNumber=Papernumber;
+	  this.parts = new ArrayList<Part>();
+	}
+	
+	public Paper(String content, int Papernumber)
+	{
 		
 		this.content=content;
 		this.PaperNumber = Papernumber;
