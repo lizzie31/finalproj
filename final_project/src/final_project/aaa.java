@@ -41,7 +41,7 @@ public class aaa {
  	   Paper newPaper=createOnePaper(file_name,path,dic);
  	   CalculateDistanceFromDBArticles(newPaper,papers);
  	   CalculateDistanceFromSameArticles(newPaper);   
- 	  UpdateGeneratorFlag(newPaper);
+ 	   UpdateGeneratorFlag(newPaper);
     }
 	
 	public static void UpdateGeneratorFlag(Paper newPaper)
@@ -51,8 +51,8 @@ public class aaa {
 	 		  int k=0;
 	 		  int j=0;
 	 		  Part paperPart=newPaper.getParts().get(t);
-		     for(int i=0;i<K;i++)
-		     {
+		      for(int i=0;i<K;i++)
+		      {
 		    	 if((paperPart.getDistanceFromDBArticles()!=null)&&(paperPart.getDistanceFromCurrArticle()!= null))
 		    	 {
 		    	 if(paperPart.getDistanceFromDBArticles().get(j)<paperPart.getDistanceFromCurrArticle().get(k))
@@ -60,7 +60,7 @@ public class aaa {
 		    	 else k++;
 		    	 }
 		    		 
-		     }
+		      }
 		     
 		     if(j>k)
 		    	 paperPart.setGeneratorFlag(1);
@@ -72,9 +72,7 @@ public class aaa {
 	}
 	
 	private static void CalculateDistanceFromSameArticles(Paper newPaper)
-	{
-
-	 	   
+	{ 	   
 	 	   for(Part paperPart1:newPaper.getParts())
 	 	   {
 	 		  List<Double> distanceFromSamePaper=new ArrayList<>();
@@ -99,25 +97,23 @@ public class aaa {
 					      DZVt=Math.abs(paperPart1.getDistanceFromPrev()+newPaper.getParts().get(t).getDistanceFromPrev()-zvt1-zvt2);
 					      distanceFromSamePaper.add(DZVt);
 	 				  }
-
 	 	 	   }
 				     Collections.sort(distanceFromSamePaper); 
-		 		     paperPart1.setDistanceFromCurrArticle(distanceFromSamePaper);
-		 		  
+		 		     paperPart1.setDistanceFromCurrArticle(distanceFromSamePaper);		 		  
 	 	   }
 	 	   
 	 	   
 	}
 private static void CalculateDistanceFromDBArticles(Paper newPaper,ArrayList<Paper> papers)
 {
-	Collections.sort(newPaper.getParts(), new Comparator<Part>() {
+	   Collections.sort(newPaper.getParts(), new Comparator<Part>() {
         @Override
         public int compare(Part part2, Part part1)
         {
 
             return  part2.getPartNumber()-part1.getPartNumber();
         }
-       });
+        });
 	   for(Part paperPart:newPaper.getParts())
 	   {
 		  if(paperPart.getPartNumber()>T)
