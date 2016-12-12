@@ -1,6 +1,7 @@
 package Model;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import final_project.DBconn;
 
@@ -11,16 +12,28 @@ public class Part {
  private int PartNumber;
  private Histogram histo;
  private double DistanceFromPrev;
+ 
+ private List<Double> DistanceFromCurrArticle;
+ private List<Double> DistanceFromDBArticles;
+ private int generatorFlag;
+ 
 
  
  
  
- public Part(String text, int paperNum ,int partNumber)
+ public int getGeneratorFlag() {
+	return generatorFlag;
+}
+public void setGeneratorFlag(int generatorFlag) {
+	this.generatorFlag = generatorFlag;
+}
+public Part(String text, int paperNum ,int partNumber)
  {
 	 this.text = text;
 	 this.PaperNumner = paperNum;
 	 this.PartNumber=partNumber;
 	 this.DistanceFromPrev=0;
+	 
 	
  }
 public Part(String text, int paperNum, int partNumber, Histogram histogram,double spearmanCo) {
@@ -86,5 +99,19 @@ public Histogram getHisto() {
 public void setHisto(Histogram histo) {
 	this.histo = histo;
 }
+public List<Double> getDistanceFromDBArticles() {
+	return DistanceFromDBArticles;
 }
+public void setDistanceFromDBArticles(List<Double> distanceFromDBArticles) {
+	DistanceFromDBArticles = distanceFromDBArticles;
+}
+public List<Double> getDistanceFromCurrArticle() {
+	return DistanceFromCurrArticle;
+}
+public void setDistanceFromCurrArticle(List<Double> distanceFromCurrArticle) {
+	DistanceFromCurrArticle = distanceFromCurrArticle;
+}
+
+}
+
 

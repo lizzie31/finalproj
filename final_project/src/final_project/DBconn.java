@@ -100,26 +100,18 @@ public class DBconn {
              ResultSet rs = sta.executeQuery(query);
              while (rs.next())
              {
-            	 String contant=rs.getString(1);
-            	 int partnum=rs.getInt(2);
-            	// if(partnum>T)
-            	 //{
-                 //String query1 = "select * from PartDistanceFromPrev where paperNumber="+i+" AND partNumber="+partnum;
-                 //ResultSet rs1 = sta.executeQuery(query1);
-            	 
-            	 spearman=(double)this.GetPrevSpearmanFromDB(i, partnum);
-            	// }
-            	// else spearman=0;
-            	 Histogram histogram=this.GetHistogramFromDB(i,partnum,d.getDic().size());
-            	 Part paperPart=new Part(contant,i,partnum,histogram,spearman);
-            	 paper.getParts().add(paperPart);
-        	    
-     	   
+            	String contant=rs.getString(1);
+            	int partnum=rs.getInt(2);
+            	spearman=(double)this.GetPrevSpearmanFromDB(i, partnum);
+            	Histogram histogram=this.GetHistogramFromDB(i,partnum,d.getDic().size());
+                Part paperPart=new Part(contant,i,partnum,histogram,spearman);
+            	paper.getParts().add(paperPart); 
              }
            }
            
            return papers;
 	}
+	
 	public void createParts(Part p) throws SQLException //inert one part to db
 	{
 		String quary = "INSERT INTO Parts VALUES(?, ?, ?)";
@@ -127,8 +119,6 @@ public class DBconn {
 		preparedStatement.setString(1, p.getText());
 		preparedStatement.setInt(2, p.getPartNumber());
 		preparedStatement.setInt(3, p.getPaperNumner());
-	
-		// execute insert SQL stetement
 		preparedStatement .executeUpdate();
 	}
 	
@@ -141,13 +131,13 @@ public class DBconn {
 		  
 		  for(int i=0;i<length;i++)
 		  {
-			 String value=(d.getDic()).get(i);
-			 
+			 String value=(d.getDic()).get(i);		 
 			 query += "('" + value + "')";
 			 query = query.substring(1, query.length() - 1);
 			 ps.setString(1,value);
 			 ps.addBatch();
 		  }
+		  
 		  ps.executeBatch();	  
 	 }
 	
@@ -157,13 +147,11 @@ public class DBconn {
            Statement sta = conn.createStatement();
            String query = "select * from Dictionary";
            ResultSet rs = sta.executeQuery(query);
-           while (rs.next()) {
-        	   String temp=rs.getString(1);
-        	   ngrams.add(temp);       	   
-           }
+           while (rs.next()) 
+        	   ngrams.add(rs.getString(1));       	        
            Dictionary Dic=new Dictionary(ngrams);
            
-           return Dic;
+         return Dic;
 	}
 	
 	
@@ -172,25 +160,22 @@ public class DBconn {
 	       int[] Histo=new int[n+1];
            Statement sta = conn.createStatement();
            String query = "select NgramIndexInDic,Rank from Histograms where paperPart="+partnum+"AND PaperNumber="+papernum;
-           ResultSet rs = sta.executeQuery(query);
-           while (rs.next()) {
-        	   Histo[rs.getInt(1)]=rs.getInt(2);
-           }
+           ResultSet rs = sta.executeQuery(query); 
+           while (rs.next()) 
+        	   Histo[rs.getInt(1)]=rs.getInt(2);   
            Histogram histogram=new Histogram(Histo);
            
-           return histogram;
+         return histogram;
 		
 	}
 	
-	public void InsertDBSpearmanFromPrev(int paperNum,int partNum,float SpearmanCor) throws SQLException
+	public void InsertDBSpearmanFromPrev(int paperNum,int partNum,double SpearmanCor) throws SQLException
 	{
 		String quary = "INSERT INTO PartDistanceFromPrev VALUES(?, ?, ?)";
 		PreparedStatement preparedStatement = conn.prepareStatement(quary);
 		preparedStatement.setInt(1,paperNum);
 		preparedStatement.setInt(2,partNum);
 		preparedStatement.setFloat(3,(float)SpearmanCor);
-	
-		// execute insert SQL stetement
 		preparedStatement .executeUpdate();
 		
 	}
@@ -199,12 +184,11 @@ public class DBconn {
 	{
 		if(partNum>T)
 		{
-	           Statement sta = conn.createStatement();
-	           String query = "select DistanceFromPrev from PartDistanceFromPrev where paperNumber="+paperNum+"AND partNumber="+partNum;
-	           ResultSet rs = sta.executeQuery(query);
-	           while (rs.next()) {
-	             return rs.getFloat(1);
-	           }
+	        Statement sta = conn.createStatement();
+	        String query = "select DistanceFromPrev from PartDistanceFromPrev where paperNumber="+paperNum+"AND partNumber="+partNum;
+	        ResultSet rs = sta.executeQuery(query);
+	        while (rs.next()) 
+	          return rs.getFloat(1);	           
 		}
 		return 0;
         

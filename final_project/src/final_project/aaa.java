@@ -2,20 +2,15 @@ package final_project;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.apache.commons.math3.*;
-import org.apache.commons.math3.exception.DimensionMismatchException;
-import org.apache.commons.math3.exception.MathIllegalArgumentException;
-import org.apache.commons.math3.exception.util.LocalizedFormats;
-import org.apache.commons.math3.linear.MatrixUtils;
-import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
-import org.apache.commons.math3.stat.correlation.SpearmansCorrelation;
-import org.apache.commons.math3.stat.ranking.NaNStrategy;
-import org.apache.commons.math3.stat.ranking.NaturalRanking;
+
 
 import Model.Dictionary;
 import Model.Histogram;
@@ -27,6 +22,7 @@ import Model.Part;
 public class aaa {
 	
 	public static final int T=5;
+	public static final int K=5;
 	public static DBconn DbConn=new DBconn();
     public static ArrayList<Paper> papers= new ArrayList<Paper>();
 	
@@ -43,6 +39,117 @@ public class aaa {
  	   String file_name = "1";
  	   File path=new File("C:/newarticle/"+ file_name + ".pdf");
  	   Paper newPaper=createOnePaper(file_name,path,dic);
+		Collections.sort(newPaper.getParts(), new Comparator<Part>() {
+	        @Override
+	        public int compare(Part part2, Part part1)
+	        {
+
+	            return  part2.getPartNumber()-part1.getPartNumber();
+	        }
+	       });
+ 	   for(Part paperPart:newPaper.getParts())
+ 	   {
+ 		  if(paperPart.getPartNumber()>T)
+ 		  {
+ 			  List<Double> distanceFromDBParts=new ArrayList<>();
+		   
+ 		     for(Paper DBpaper:papers)
+ 		     {  
+		    	Collections.sort(DBpaper.getParts(), new Comparator<Part>()
+		    	{
+ 				 @Override
+ 				   public int compare(Part part2, Part part1)
+ 				   {
+ 				      return  part2.getPartNumber()-part1.getPartNumber();
+ 				   }
+ 				});
+ 			   
+ 			   for(Part DBpart:DBpaper.getParts())
+ 			   {
+ 				  double zvt1=0;
+ 	 			  double zvt2=0;
+ 	 			  double DZVt=0;
+ 	 			  int j=DBpart.getPartNumber();
+ 				  if(j>T)
+ 				  {
+ 					  j=j-1;
+ 				      for(int i=paperPart.getPartNumber()-1;i>paperPart.getPartNumber()-T;i--)
+ 				      {	
+ 				    	  
+ 				        zvt1=zvt1+calculateSpearman(paperPart.getHisto(),DBpaper.getParts().get(j).getHisto());
+ 				        zvt2=zvt2+calculateSpearman(newPaper.getParts().get(i).getHisto(),DBpart.getHisto()); 
+ 				        j--;
+ 				      }
+				      zvt1=zvt1/T;
+				      zvt2=zvt2/T;
+				      DZVt=Math.abs(paperPart.getDistanceFromPrev()+DBpart.getDistanceFromPrev()-zvt1-zvt2);
+				      distanceFromDBParts.add(DZVt);
+				            
+ 				   }
+ 				  
+ 			   }
+ 		    }
+ 		    Collections.sort(distanceFromDBParts); 
+ 		    paperPart.setDistanceFromDBArticles(distanceFromDBParts);
+ 		  }
+ 	   }
+ 	   
+ 	   for(Part paperPart1:newPaper.getParts())
+ 	   {
+ 		  List<Double> distanceFromSamePaper=new ArrayList<>();
+ 	     if(paperPart1.getPartNumber()>T)
+ 	     {
+ 	 	   for(int j=6;j<newPaper.getParts().size();j++)
+ 	 	   {
+				  double zvt1=0;
+ 	 			  double zvt2=0;
+ 	 			  double DZVt=0;
+ 			
+ 					  int t=j-1;
+ 				      for(int i=paperPart1.getPartNumber()-1;i>=paperPart1.getPartNumber()-T;i--)
+ 				      {	
+ 				    	  
+ 				        zvt1=zvt1+calculateSpearman(paperPart1.getHisto(),newPaper.getParts().get(t).getHisto());
+ 				        zvt2=zvt2+calculateSpearman(newPaper.getParts().get(i).getHisto(),newPaper.getParts().get(j).getHisto()); 
+ 				        t--;
+ 				      }
+				      zvt1=zvt1/T;
+				      zvt2=zvt2/T;
+				      DZVt=Math.abs(paperPart1.getDistanceFromPrev()+newPaper.getParts().get(t).getDistanceFromPrev()-zvt1-zvt2);
+				      distanceFromSamePaper.add(DZVt);
+ 				  }
+
+ 	 	   }
+			     Collections.sort(distanceFromSamePaper); 
+	 		     paperPart1.setDistanceFromCurrArticle(distanceFromSamePaper);
+	 		  
+ 	   }
+ 	   
+ 	   
+ 	  for(int t=T;t<newPaper.getParts().size();t++)
+	   {
+ 		  int k=0;
+ 		  int j=0;
+ 		  Part paperPart=newPaper.getParts().get(t);
+	     for(int i=0;i<K;i++)
+	     {
+	    	 if((paperPart.getDistanceFromDBArticles()!=null)&&(paperPart.getDistanceFromCurrArticle()!= null))
+	    	 {
+	    	 if(paperPart.getDistanceFromDBArticles().get(j)<paperPart.getDistanceFromCurrArticle().get(k))
+	    		 j++;
+	    	 else k++;
+	    	 }
+	    		 
+	     }
+	     
+	     if(j>k)
+	    	 paperPart.setGeneratorFlag(1);
+	     else
+	    	 paperPart.setGeneratorFlag(0);
+	     
+	     System.out.println(paperPart.getGeneratorFlag());
+	   }
+ 	   
        
 	   
        
@@ -89,7 +196,7 @@ private static void CreateParts(Paper paper,ArrayList<String> dic) throws SQLExc
 	  	    
 	  for(int i = 0; i<paper.getContent().length();i+=1000) //go over all of the parts in the paper
 	  {
-	      double spearmanCor=0;
+	      double zvt=0;
 	      String subPaperStr=paper.getContent().substring(i);
 	      if(subPaperStr.length()>1000)
 	    	  subPaperStr=paper.getContent().substring(i,i+1001);
@@ -97,24 +204,17 @@ private static void CreateParts(Paper paper,ArrayList<String> dic) throws SQLExc
 	      if(partIndex>T) //if the part dosen't have t previous parts, don't calculate the correlation
 	      for(int k=partIndex-1;k>=partIndex-T;k--)//go over t previous parts of the specific part
 	      {
-	    	double PartOfSpearmanCor=0;
-	    	Histogram prevHisto=DbConn.GetHistogramFromDB(paper.getPaperNumber(),k,dic.size()); //get previous histogram from DB
-	    	for(int x=0; x<prevHisto.getFreq().length; x++) //go over the current and previous histograms and calculate sigma(di^2)
-	    		PartOfSpearmanCor =PartOfSpearmanCor+ (int) Math.pow(CurrHisto.getFreq()[x]-prevHisto.getFreq()[x],2);
-
-	    	PartOfSpearmanCor=6*PartOfSpearmanCor;// 6*sigma(di^2)
-	    	PartOfSpearmanCor=PartOfSpearmanCor/(dic.size()*(Math.pow(dic.size(),2)-1)); //6*sigma(di^2)/n*(n^2-1)
-	    	spearmanCor=PartOfSpearmanCor+spearmanCor;//zvt--> sigma(spearman(di,dj))
-	    				
+	    	 Histogram prevHisto=paper.getParts().get(k-1).getHisto(); //get previous histogram from DB
+	    	 zvt=zvt+calculateSpearman(CurrHisto,prevHisto);	
 	      }
 	          
-	      spearmanCor=spearmanCor/T;// zvt=sigma(spearman(di,dj))/T	
+	      zvt=zvt/T;// zvt=sigma(spearman(di,dj))/T	
 	      
-	      
-	    	 part = new Part(subPaperStr,paper.getPaperNumber(),partIndex,CurrHisto,spearmanCor);    	
+	  //  zvt =Float.parseFloat(new DecimalFormat("##.####").format(zvt));
+	    	 part = new Part(subPaperStr,paper.getPaperNumber(),partIndex,CurrHisto,zvt);    	
 	       //DbConn.createHistograms(part);
-	      //if(spearmanCor!=0)
-	         //DbConn.InsertDBSpearmanFromPrev(paper.getPaperNumber(),j,(float)spearmanCor);
+	       // if(zvt!=0)
+	       //  DbConn.InsertDBSpearmanFromPrev(paper.getPaperNumber(),partIndex,zvt);
 	      //DbConn.createParts(part);
 	        paper.getParts().add(part);//add part to paper
 	        partIndex++;
@@ -123,10 +223,31 @@ private static void CreateParts(Paper paper,ArrayList<String> dic) throws SQLExc
 	    	
 }
 
+public static float calculateSpearman(Histogram a,Histogram b)
+{
+	
+	float SpearmanCor=0;
+	double temp1=0;
+	long  temp2=0;
+	long  temp3=0;
+	for(int x=0; x<a.getFreq().length; x++){ //go over the current and previous histograms and calculate sigma(di^2)
+		temp1= Math.pow(a.getFreq()[x]-b.getFreq()[x],2);
+	    SpearmanCor=(long) (SpearmanCor+temp1);}
+
+	SpearmanCor=6*SpearmanCor;// 6*sigma(di^2)
+	temp3=a.getFreq().length;
+	temp2=(long) Math.pow(temp3,2);
+	temp2=temp3*(temp2-1);
+	SpearmanCor=(SpearmanCor/temp2)*100000000; //6*sigma(di^2)/n*(n^2-1)
+	
+	return SpearmanCor;//spearman(di)
+	
+}
+
 public static Histogram CreateHistogram(ArrayList<String> dic,String content)
 {
 	Histogram histo=new Histogram(dic.size());
-	for(int i=0;i<content.length()-3;i++)
+	for(int i=1;i<content.length()-3;i++)
 	{
 	  String ngram=content.substring(i, i+3);
 	  if(dic.contains(ngram))
