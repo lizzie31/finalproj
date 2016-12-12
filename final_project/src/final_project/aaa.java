@@ -39,124 +39,133 @@ public class aaa {
  	   String file_name = "1";
  	   File path=new File("C:/newarticle/"+ file_name + ".pdf");
  	   Paper newPaper=createOnePaper(file_name,path,dic);
-		Collections.sort(newPaper.getParts(), new Comparator<Part>() {
-	        @Override
-	        public int compare(Part part2, Part part1)
-	        {
-
-	            return  part2.getPartNumber()-part1.getPartNumber();
-	        }
-	       });
- 	   for(Part paperPart:newPaper.getParts())
- 	   {
- 		  if(paperPart.getPartNumber()>T)
- 		  {
- 			  List<Double> distanceFromDBParts=new ArrayList<>();
-		   
- 		     for(Paper DBpaper:papers)
- 		     {  
-		    	Collections.sort(DBpaper.getParts(), new Comparator<Part>()
-		    	{
- 				 @Override
- 				   public int compare(Part part2, Part part1)
- 				   {
- 				      return  part2.getPartNumber()-part1.getPartNumber();
- 				   }
- 				});
- 			   
- 			   for(Part DBpart:DBpaper.getParts())
- 			   {
- 				  double zvt1=0;
- 	 			  double zvt2=0;
- 	 			  double DZVt=0;
- 	 			  int j=DBpart.getPartNumber();
- 				  if(j>T)
- 				  {
- 					  j=j-1;
- 				      for(int i=paperPart.getPartNumber()-1;i>paperPart.getPartNumber()-T;i--)
- 				      {	
- 				    	  
- 				        zvt1=zvt1+calculateSpearman(paperPart.getHisto(),DBpaper.getParts().get(j).getHisto());
- 				        zvt2=zvt2+calculateSpearman(newPaper.getParts().get(i).getHisto(),DBpart.getHisto()); 
- 				        j--;
- 				      }
-				      zvt1=zvt1/T;
-				      zvt2=zvt2/T;
-				      DZVt=Math.abs(paperPart.getDistanceFromPrev()+DBpart.getDistanceFromPrev()-zvt1-zvt2);
-				      distanceFromDBParts.add(DZVt);
-				            
- 				   }
- 				  
- 			   }
- 		    }
- 		    Collections.sort(distanceFromDBParts); 
- 		    paperPart.setDistanceFromDBArticles(distanceFromDBParts);
- 		  }
- 	   }
- 	   
- 	   for(Part paperPart1:newPaper.getParts())
- 	   {
- 		  List<Double> distanceFromSamePaper=new ArrayList<>();
- 	     if(paperPart1.getPartNumber()>T)
- 	     {
- 	 	   for(int j=6;j<newPaper.getParts().size();j++)
- 	 	   {
-				  double zvt1=0;
- 	 			  double zvt2=0;
- 	 			  double DZVt=0;
- 			
- 					  int t=j-1;
- 				      for(int i=paperPart1.getPartNumber()-1;i>=paperPart1.getPartNumber()-T;i--)
- 				      {	
- 				    	  
- 				        zvt1=zvt1+calculateSpearman(paperPart1.getHisto(),newPaper.getParts().get(t).getHisto());
- 				        zvt2=zvt2+calculateSpearman(newPaper.getParts().get(i).getHisto(),newPaper.getParts().get(j).getHisto()); 
- 				        t--;
- 				      }
-				      zvt1=zvt1/T;
-				      zvt2=zvt2/T;
-				      DZVt=Math.abs(paperPart1.getDistanceFromPrev()+newPaper.getParts().get(t).getDistanceFromPrev()-zvt1-zvt2);
-				      distanceFromSamePaper.add(DZVt);
- 				  }
-
- 	 	   }
-			     Collections.sort(distanceFromSamePaper); 
-	 		     paperPart1.setDistanceFromCurrArticle(distanceFromSamePaper);
-	 		  
- 	   }
- 	   
- 	   
- 	  for(int t=T;t<newPaper.getParts().size();t++)
-	   {
- 		  int k=0;
- 		  int j=0;
- 		  Part paperPart=newPaper.getParts().get(t);
-	     for(int i=0;i<K;i++)
-	     {
-	    	 if((paperPart.getDistanceFromDBArticles()!=null)&&(paperPart.getDistanceFromCurrArticle()!= null))
-	    	 {
-	    	 if(paperPart.getDistanceFromDBArticles().get(j)<paperPart.getDistanceFromCurrArticle().get(k))
-	    		 j++;
-	    	 else k++;
-	    	 }
-	    		 
-	     }
-	     
-	     if(j>k)
-	    	 paperPart.setGeneratorFlag(1);
-	     else
-	    	 paperPart.setGeneratorFlag(0);
-	     
-	     System.out.println(paperPart.getGeneratorFlag());
-	   }
- 	   
-       
-	   
-       
+ 	   CalculateDistanceFromDBArticles(newPaper,papers);
+ 	   CalculateDistanceFromSameArticles(newPaper);   
+ 	  UpdateGeneratorFlag(newPaper);
     }
 	
+	public static void UpdateGeneratorFlag(Paper newPaper)
+	{
+		  for(int t=T;t<newPaper.getParts().size();t++)
+		   {
+	 		  int k=0;
+	 		  int j=0;
+	 		  Part paperPart=newPaper.getParts().get(t);
+		     for(int i=0;i<K;i++)
+		     {
+		    	 if((paperPart.getDistanceFromDBArticles()!=null)&&(paperPart.getDistanceFromCurrArticle()!= null))
+		    	 {
+		    	 if(paperPart.getDistanceFromDBArticles().get(j)<paperPart.getDistanceFromCurrArticle().get(k))
+		    		 j++;
+		    	 else k++;
+		    	 }
+		    		 
+		     }
+		     
+		     if(j>k)
+		    	 paperPart.setGeneratorFlag(1);
+		     else
+		    	 paperPart.setGeneratorFlag(0);
+		     
+		     System.out.println(paperPart.getGeneratorFlag());
+		   }
+	}
+	
+	private static void CalculateDistanceFromSameArticles(Paper newPaper)
+	{
 
+	 	   
+	 	   for(Part paperPart1:newPaper.getParts())
+	 	   {
+	 		  List<Double> distanceFromSamePaper=new ArrayList<>();
+	 	     if(paperPart1.getPartNumber()>T)
+	 	     {
+	 	 	   for(int j=6;j<newPaper.getParts().size();j++)
+	 	 	   {
+					  double zvt1=0;
+	 	 			  double zvt2=0;
+	 	 			  double DZVt=0;
+	 			
+	 					  int t=j-1;
+	 				      for(int i=paperPart1.getPartNumber()-1;i>=paperPart1.getPartNumber()-T;i--)
+	 				      {	
+	 				    	  
+	 				        zvt1=zvt1+calculateSpearman(paperPart1.getHisto(),newPaper.getParts().get(t).getHisto());
+	 				        zvt2=zvt2+calculateSpearman(newPaper.getParts().get(i).getHisto(),newPaper.getParts().get(j).getHisto()); 
+	 				        t--;
+	 				      }
+					      zvt1=zvt1/T;
+					      zvt2=zvt2/T;
+					      DZVt=Math.abs(paperPart1.getDistanceFromPrev()+newPaper.getParts().get(t).getDistanceFromPrev()-zvt1-zvt2);
+					      distanceFromSamePaper.add(DZVt);
+	 				  }
 
+	 	 	   }
+				     Collections.sort(distanceFromSamePaper); 
+		 		     paperPart1.setDistanceFromCurrArticle(distanceFromSamePaper);
+		 		  
+	 	   }
+	 	   
+	 	   
+	}
+private static void CalculateDistanceFromDBArticles(Paper newPaper,ArrayList<Paper> papers)
+{
+	Collections.sort(newPaper.getParts(), new Comparator<Part>() {
+        @Override
+        public int compare(Part part2, Part part1)
+        {
+
+            return  part2.getPartNumber()-part1.getPartNumber();
+        }
+       });
+	   for(Part paperPart:newPaper.getParts())
+	   {
+		  if(paperPart.getPartNumber()>T)
+		  {
+			  List<Double> distanceFromDBParts=new ArrayList<>();
+	   
+		     for(Paper DBpaper:papers)
+		     {  
+	    	Collections.sort(DBpaper.getParts(), new Comparator<Part>()
+	    	{
+				 @Override
+				   public int compare(Part part2, Part part1)
+				   {
+				      return  part2.getPartNumber()-part1.getPartNumber();
+				   }
+				});
+			   
+			   for(Part DBpart:DBpaper.getParts())
+			   {
+				  double zvt1=0;
+	 			  double zvt2=0;
+	 			  double DZVt=0;
+	 			  int j=DBpart.getPartNumber();
+				  if(j>T)
+				  {
+					  j=j-1;
+				      for(int i=paperPart.getPartNumber()-1;i>paperPart.getPartNumber()-T;i--)
+				      {	
+				    	  
+				        zvt1=zvt1+calculateSpearman(paperPart.getHisto(),DBpaper.getParts().get(j).getHisto());
+				        zvt2=zvt2+calculateSpearman(newPaper.getParts().get(i).getHisto(),DBpart.getHisto()); 
+				        j--;
+				      }
+			      zvt1=zvt1/T;
+			      zvt2=zvt2/T;
+			      DZVt=Math.abs(paperPart.getDistanceFromPrev()+DBpart.getDistanceFromPrev()-zvt1-zvt2);
+			      distanceFromDBParts.add(DZVt);
+			            
+				   }
+				  
+			   }
+		    }
+		    Collections.sort(distanceFromDBParts); 
+		    paperPart.setDistanceFromDBArticles(distanceFromDBParts);
+		  }
+	   }
+
+}
 private static ArrayList<Paper> CreatePapers(Dictionary d) throws IOException, SQLException 
  {//creating all of the generator  papers and returning papers arraylist 
     ArrayList<Paper> papers= new ArrayList<Paper>();
@@ -210,7 +219,6 @@ private static void CreateParts(Paper paper,ArrayList<String> dic) throws SQLExc
 	          
 	      zvt=zvt/T;// zvt=sigma(spearman(di,dj))/T	
 	      
-	  //  zvt =Float.parseFloat(new DecimalFormat("##.####").format(zvt));
 	    	 part = new Part(subPaperStr,paper.getPaperNumber(),partIndex,CurrHisto,zvt);    	
 	       //DbConn.createHistograms(part);
 	       // if(zvt!=0)
