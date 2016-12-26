@@ -12,6 +12,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 
 
+
 import Model.Dictionary;
 import Model.Histogram;
 import Model.Paper;
@@ -19,30 +20,182 @@ import Model.Part;
 
 
 
-public class aaa {
+public class MainApp {
 	
 	public static final int T=5;
-	public static final int K=5;
+	public static final int K=10;
+	public static final int N=81;
+	
 	public static DBconn DbConn=new DBconn();
     public static ArrayList<Paper> papers= new ArrayList<Paper>();
-	
-     public aaa(){
+    public static ArrayList<Part> AllParts=new ArrayList<Part>();
+	public static Dictionary dic;
+	public static Part CenterPart;
+     public MainApp(){
+    	 
+    	 DbConn.openConnectionDB();
+      
     
      }
      
 	public static void main(String [] args) throws IOException, SQLException
-	{
-	   ArrayList<Paper> papers=new ArrayList<Paper>();
-	   DbConn.openConnectionDB();
-       Dictionary dic =DbConn.GetDicFromDB();
+	{	   
+	   
+       MainApp MA= new MainApp();
+       dic =DbConn.GetDicFromDB();
+       double StandardDeviation;
        papers=DbConn.GetPapersFromDB(dic);
- 	   String file_name = "1";
+       AllParts=DbConn.GetPartsFromDB(dic);; 
+ 	   String file_name = "5";
  	   File path=new File("C:/newarticle/"+ file_name + ".pdf");
- 	   Paper newPaper=createOnePaper(file_name,path,dic);
- 	   CalculateDistanceFromDBArticles(newPaper,papers);
- 	   CalculateDistanceFromSameArticles(newPaper);   
- 	   UpdateGeneratorFlag(newPaper);
+ 	   
+ 	  Paper newPaper=createOnePaper(file_name,path,dic);
+ //FindCenterpPartInCloude(AllParts,papers); 
+ 	  CenterPart = DbConn.getCenterPart(dic.getDic().size());
+
+ 	 // CheckOnePpaper1(newPaper,papers);
+ 	
+     CheckOnePpaper2(CenterPart,newPaper,papers); 
+ 	  
     }
+	
+	
+
+
+	
+
+	private static void CheckOnePpaper2(Part centerPart, Paper newPaper, ArrayList<Paper> papers) {
+		
+		int [] flagsArr = new int[newPaper.getParts().size()];
+		int k =0;
+		double DZVt=0;
+		   for(Paper DBpaper:papers)
+		     {  
+	     	Collections.sort(DBpaper.getParts(), new Comparator<Part>()
+	     	{
+				 @Override
+				   public int compare(Part part2, Part part1)
+				   {
+				      return  part2.getPartNumber()-part1.getPartNumber();
+				   }
+				});
+		     }
+		   Paper CenterPartPaper = papers.get(centerPart.getPaperNumner()-1);
+		   for(Part paperPart1:newPaper.getParts())
+	 	   {
+			 int j = centerPart.getPartNumber();
+			 DZVt = 0;
+	 	     if(paperPart1.getPartNumber()>T)
+	 	     {	 	 	   
+					  double zvt1=0;
+	 	 			  double zvt2=0;
+	 	 			  
+	 			
+	 					  j--;
+	 				      for(int i=paperPart1.getPartNumber()-1;i>=paperPart1.getPartNumber()-T;i--)
+	 				      {	
+	 				    	  
+	 				        zvt1=zvt1+calculateSpearman(centerPart.getHisto(),newPaper.getParts().get(i-1).getHisto());
+	 				        zvt2=zvt2+calculateSpearman(CenterPartPaper.getParts().get(j-1).getHisto(),paperPart1.getHisto()); 
+	 				       
+	 				      }
+					      zvt1=zvt1/T;
+					      zvt2=zvt2/T;
+					      DZVt=Math.abs(paperPart1.getDistanceFromPrev()+CenterPart.getDistanceFromPrev()-zvt1-zvt2);
+					      DZVt = DZVt/CenterPart.getStandartDevesion();
+					   if(DZVt>2)
+					   {
+					      flagsArr[k]=1;
+					   }else flagsArr[k]=0;
+	 	     }
+	 	 	   		 		 
+	 	   }
+		   for(int i = 0; i< flagsArr.length; i++)
+		   {
+			   System.out.println(flagsArr[i]);
+		   }
+		
+	}
+
+	private static void FindCenterpPartInCloude(ArrayList<Part> allParts, ArrayList<Paper> papers) throws SQLException {
+		double MinDistance = 0;
+		  double DZVt=0;
+		  int firstPartFlag=1;
+		Part MinPart = new Part();
+		
+		double DZvtPow = 0;
+		double MinDZvtPow = 0;
+		double StandartDevision = 0;
+		
+	    for(Paper DBpaper:papers)
+	     {  
+     	Collections.sort(DBpaper.getParts(), new Comparator<Part>()
+     	{
+			 @Override
+			   public int compare(Part part2, Part part1)
+			   {
+			      return  part2.getPartNumber()-part1.getPartNumber();
+			   }
+			});
+	     }
+		   for(Part SelectedPart:allParts)
+		   {
+			
+			  Paper SelectedPartPaper = papers.get(SelectedPart.getPaperNumner()-1);
+			   for(Part dbPart:allParts)
+			   {  
+				   
+			   Paper dbPartPaper = papers.get(dbPart.getPaperNumner()-1);
+			   int j=dbPart.getPartNumber()-1;
+			     double zvt1=0;
+			     double zvt2=0;
+			   			  
+			      for(int i=SelectedPart.getPartNumber()-1;i>= SelectedPart.getPartNumber()-T;i--)
+			      {	
+			    	  			    	  
+				        zvt1=zvt1+calculateSpearman(SelectedPart.getHisto(),dbPartPaper.getParts().get(j-1).getHisto());
+				        zvt2=zvt2+calculateSpearman(SelectedPartPaper.getParts().get(i-1).getHisto(),dbPart.getHisto()); 
+			        j--;
+			      }
+		      zvt1=zvt1/T;
+		      zvt2=zvt2/T;
+		      double temp = SelectedPart.getDistanceFromPrev()+dbPart.getDistanceFromPrev();
+		      double temp2 = (zvt1+zvt2);
+		      DZvtPow = DZvtPow + Math.pow((temp - temp2), 2);
+		      DZVt=DZVt+(Math.abs(temp - temp2)); 
+		      
+			   }
+			   DZVt=DZVt/N;
+			   if (firstPartFlag ==1)
+			   {
+				   MinDistance = DZVt;
+				   firstPartFlag=0;
+				   Part p = new Part(null,SelectedPart.getPaperNumner()-1,SelectedPart.getPartNumber(),SelectedPart.getHistogram(),SelectedPart.getDistanceFromPrev());
+				   MinPart=p;
+				   MinDZvtPow = DZvtPow;
+			   }
+			   else if(DZVt<MinDistance)
+			  {
+				  MinDistance = DZVt;
+				 MinPart  = new Part(null,SelectedPart.getPaperNumner()-1,SelectedPart.getPartNumber(),SelectedPart.getHistogram(),SelectedPart.getDistanceFromPrev());
+				 MinDZvtPow = 	DZvtPow;			
+			  }
+			   StandartDevision =Math.sqrt(MinDZvtPow/N);
+			  DZVt = 0;
+		   }
+		   
+		   DbConn.InsertCenterPoint(MinPart,StandartDevision);
+		
+	}
+
+
+
+	public static void CheckOnePpaper1(Paper paper, ArrayList<Paper> papers)
+	{
+		   CalculateDistanceFromDBArticles(paper,papers);
+	 	   CalculateDistanceFromSameArticles(paper);   
+	 	   UpdateGeneratorFlag(paper);	
+	}
 	
 	public static void UpdateGeneratorFlag(Paper newPaper)
 	{
@@ -104,6 +257,9 @@ public class aaa {
 	 	   
 	 	   
 	}
+	
+	
+
 private static void CalculateDistanceFromDBArticles(Paper newPaper,ArrayList<Paper> papers)
 {
 	   Collections.sort(newPaper.getParts(), new Comparator<Part>() {
@@ -143,8 +299,8 @@ private static void CalculateDistanceFromDBArticles(Paper newPaper,ArrayList<Pap
 				      for(int i=paperPart.getPartNumber()-1;i>paperPart.getPartNumber()-T;i--)
 				      {	
 				    	  
-				        zvt1=zvt1+calculateSpearman(paperPart.getHisto(),DBpaper.getParts().get(j).getHisto());
-				        zvt2=zvt2+calculateSpearman(newPaper.getParts().get(i).getHisto(),DBpart.getHisto()); 
+				        zvt1=zvt1+calculateSpearman(paperPart.getHisto(),DBpaper.getParts().get(j-1).getHisto());
+				        zvt2=zvt2+calculateSpearman(newPaper.getParts().get(i-1).getHisto(),DBpart.getHisto()); 
 				        j--;
 				      }
 			      zvt1=zvt1/T;
@@ -235,14 +391,14 @@ public static float calculateSpearman(Histogram a,Histogram b)
 	long  temp2=0;
 	long  temp3=0;
 	for(int x=0; x<a.getFreq().length; x++){ //go over the current and previous histograms and calculate sigma(di^2)
-		temp1= Math.pow(a.getFreq()[x]-b.getFreq()[x],2);
+		temp1= Math.pow((a.getFreq()[x])-(b.getFreq()[x]),2);
 	    SpearmanCor=(long) (SpearmanCor+temp1);}
 
 	SpearmanCor=6*SpearmanCor;// 6*sigma(di^2)
 	temp3=a.getFreq().length;
 	temp2=(long) Math.pow(temp3,2);
 	temp2=temp3*(temp2-1);
-	SpearmanCor=(SpearmanCor/temp2)*100000000; //6*sigma(di^2)/n*(n^2-1)
+	SpearmanCor=(SpearmanCor/temp2)*10000000; //6*sigma(di^2)/n*(n^2-1)
 	
 	return SpearmanCor;//spearman(di)
 	

@@ -12,8 +12,15 @@ public class Part {
  private int PartNumber;
  private Histogram histo;
  private double DistanceFromPrev;
+ private double StandartDevesion=0;
  
- private List<Double> DistanceFromCurrArticle;
+ public double getStandartDevesion() {
+	return StandartDevesion;
+}
+public void setStandartDevesion(double standartDevesion) {
+	StandartDevesion = standartDevesion;
+}
+private List<Double> DistanceFromCurrArticle;
  private List<Double> DistanceFromDBArticles;
  private int generatorFlag;
  
@@ -27,6 +34,11 @@ public class Part {
 public void setGeneratorFlag(int generatorFlag) {
 	this.generatorFlag = generatorFlag;
 }
+
+public Part()
+{
+
+}
 public Part(String text, int paperNum ,int partNumber)
  {
 	 this.text = text;
@@ -36,6 +48,7 @@ public Part(String text, int paperNum ,int partNumber)
 	 
 	
  }
+
 public Part(String text, int paperNum, int partNumber, Histogram histogram,double spearmanCo) {
 	
 	 this.text = text;

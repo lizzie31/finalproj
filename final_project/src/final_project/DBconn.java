@@ -27,7 +27,7 @@ public class DBconn {
 	public  void openConnectionDB(){
 		
 		String url="jdbc:sqlserver://localhost:1433" ;
-		String username="try";
+		String username="root";
 		String password="123456";
 
 	    try 
@@ -111,6 +111,25 @@ public class DBconn {
            
            return papers;
 	}
+	public ArrayList<Part> GetPartsFromDB(Dictionary d)  throws SQLException {
+		
+		ArrayList<Part>AllParts = new ArrayList<Part>();
+		Statement sta = conn.createStatement();
+		 String query = "select * from PartDistanceFromPrev";
+         ResultSet rs = sta.executeQuery(query);
+         
+         while (rs.next())
+         {
+        	int PaperNumber=rs.getInt(1);
+        	int partnum=rs.getInt(2);
+        	Double Didtance = rs.getDouble(3);
+        	Histogram histogram=this.GetHistogramFromDB(PaperNumber,partnum,d.getDic().size());
+        	
+            Part paperPart= new Part(null,PaperNumber,partnum,histogram,Didtance);
+        	AllParts.add(paperPart); 
+         }
+		return AllParts;
+	}
 	
 	public void createParts(Part p) throws SQLException //inert one part to db
 	{
@@ -192,6 +211,37 @@ public class DBconn {
 		}
 		return 0;
         
+	}
+	public void InsertCenterPoint(Part minPart, double StandartDevesion) throws SQLException {
+		
+		String quary = "INSERT INTO CenterPart VALUES(?, ?, ?, ?)";
+		PreparedStatement preparedStatement = conn.prepareStatement(quary);
+		preparedStatement.setInt(1,minPart.getPaperNumner());
+		preparedStatement.setInt(2,minPart.getPartNumber());
+		preparedStatement.setFloat(3,(float) (minPart.getDistanceFromPrev()));
+				
+		preparedStatement.setFloat(4, (float) StandartDevesion);
+		preparedStatement .executeUpdate();
+		
+	}
+	public Part getCenterPart(int size) throws SQLException {
+		
+		Part CenterPart = new Part();
+		  
+	        Statement sta = conn.createStatement();
+	        String query = "select * from CenterPart";
+	        ResultSet rs = sta.executeQuery(query);
+	        
+	        rs.next();
+	        int paperNumber =	  rs.getInt(1);
+	        
+	        CenterPart.setPaperNumner(paperNumber);  
+	        CenterPart.setPartNumber(rs.getInt(2));
+	        CenterPart.setDistanceFromPrev(rs.getFloat(3));	        
+	        Histogram histo = GetHistogramFromDB(CenterPart.getPaperNumner(),CenterPart.getPartNumber(),size);
+	        CenterPart.setHisto(histo);
+	        CenterPart.setStandartDevesion(rs.getFloat(4));
+		return CenterPart;
 	}
 	
 
