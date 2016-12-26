@@ -7,6 +7,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 import Model.Dictionary;
 import Model.Histogram;
@@ -27,7 +29,7 @@ public class DBconn {
 	public  void openConnectionDB(){
 		
 		String url="jdbc:sqlserver://localhost:1433" ;
-		String username="root";
+		String username="try";
 		String password="123456";
 
 	    try 
@@ -243,6 +245,8 @@ public class DBconn {
 	        CenterPart.setStandartDevesion(rs.getFloat(4));
 		return CenterPart;
 	}
+	
+
 	
 
 
