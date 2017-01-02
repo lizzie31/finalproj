@@ -26,39 +26,43 @@ public class MainApp {
 	public static final int K=10;
 	public static final int N=81;
 	
-	public static DBconn DbConn=new DBconn();
-    public static ArrayList<Paper> papers= new ArrayList<Paper>();
-    public static ArrayList<Part> AllParts=new ArrayList<Part>();
-	public static Dictionary dic;
-	public static Part CenterPart;
-     public MainApp(){
+	public static  DBconn DbConn=new DBconn();
+    public  ArrayList<Paper> papers= new ArrayList<Paper>();
+    public  ArrayList<Part> AllParts=new ArrayList<Part>();
+	public  Dictionary dic;
+	public  Part CenterPart;
+	public  String FilePath;
+	public  String FileName;
+	
+     public MainApp(String FilePath, String FileName){
     	 
     	 DbConn.openConnectionDB();
-      
-    
+         this.FilePath=FilePath;
+         this.FileName = FileName;
      }
      
-	public static void main(String [] args) throws IOException, SQLException
-	{	   
-	   
-       MainApp MA= new MainApp();
-       dic =DbConn.GetDicFromDB();
-       double StandardDeviation;
-       papers=DbConn.GetPapersFromDB(dic);
-       sortParts(papers);
-       AllParts=DbConn.GetPartsFromDB(dic);; 
- 	   String file_name = "7";
- 	   File path=new File("C:/newarticle/"+ file_name + ".pdf");
- 	   Paper newPaper=createOnePaper(file_name,path,dic); 
- 	   CenterPart = DbConn.getCenterPart(dic.getDic().size());	
-       //CheckOnePpaper2(CenterPart,newPaper,papers); 
-      CheckOnePpaper1(newPaper,papers);
+     public int Start() throws IOException, SQLException
+ 	{	   
+ 	   
+       // MainApp MA= new MainApp();
+        dic =DbConn.GetDicFromDB();
+        double StandardDeviation;
+        papers=DbConn.GetPapersFromDB(dic);
+        AllParts=DbConn.GetPartsFromDB(dic);; 
+  	   
+   Paper newPaper=createOneNewPaper(FileName,FilePath,dic);
+  // FindCenterpPartInCloude(AllParts,papers); 
+  	 CenterPart = DbConn.getCenterPart(dic.getDic().size());
+
+  	 // CheckOnePpaper1(newPaper,papers);
+  	
+   return  CheckOnePpaper2(CenterPart,newPaper,papers); 
  	  
     }
 	
 	
 
-	public static double calculateDZVt(Paper paper1,Paper paper2,int PartNumber1,int PartNumber2,int j)
+	public double calculateDZVt(Paper paper1,Paper paper2,int PartNumber1,int PartNumber2,int j)
 	{
 		
 		      double zvt1=0;
@@ -92,7 +96,7 @@ public class MainApp {
 			});
 	     }
     }
-	private static void CheckOnePpaper2(Part centerPart, Paper newPaper, ArrayList<Paper> papers) {
+	private int CheckOnePpaper2(Part centerPart, Paper newPaper, ArrayList<Paper> papers) {
 		
 		int [] flagsArr = new int[newPaper.getParts().size()-T];
 		int k =0;
@@ -105,7 +109,7 @@ public class MainApp {
 	 	     if(paperPart1.getPartNumber()>T)
 	 	     {	
 	 	    	     DZVt=calculateDZVt(CenterPartPaper,newPaper,centerPart.getPartNumber(),paperPart1.getPartNumber(),j);
-					 DZVt = DZVt/CenterPart.getStandartDevesion();
+					 DZVt = DZVt/centerPart.getStandartDevesion();
 					 if(DZVt>2)
 					      flagsArr[k]=1;
                      else flagsArr[k]=0;
@@ -113,14 +117,27 @@ public class MainApp {
 	 	     }
 	 	 	   		 		 
 	 	   }
-		   for(int i = 0; i< flagsArr.length; i++)
-		   {
-			   System.out.println(flagsArr[i]);
-		   }
-		
-	}
+		  return CheckFlags(flagsArr);
+			
+		}
 
-	private static void FindCenterpPartInCloude(ArrayList<Part> allParts, ArrayList<Paper> papers) throws SQLException {
+		private int CheckFlags(int[] flagsArr) {
+			
+			int counter=0;
+			  for(int i = 0; i< flagsArr.length; i++)
+			   {
+				  if(flagsArr[i]==1) counter++;
+			   }
+			if (counter  >= flagsArr.length/2)
+			{
+				return 1;
+			}
+			else return 0;
+		}
+		
+	
+
+	private void FindCenterpPartInCloude(ArrayList<Part> allParts, ArrayList<Paper> papers) throws SQLException {
 		double MinDistance = 0;
 		  double DZVt=0;
 		  double nowDZVt=0;
@@ -171,14 +188,14 @@ public class MainApp {
 
 
 
-	public static void CheckOnePpaper1(Paper paper, ArrayList<Paper> papers)
+	public void CheckOnePpaper1(Paper paper, ArrayList<Paper> papers)
 	{
 		   CalculateDistanceFromDBArticles(paper,papers);
 	 	   CalculateDistanceFromSameArticles(paper);   
 	 	   UpdateGeneratorFlag(paper);	
 	}
 	
-	public static void UpdateGeneratorFlag(Paper newPaper)
+	public void UpdateGeneratorFlag(Paper newPaper)
 	{
 		  for(int t=T;t<newPaper.getParts().size();t++)
 		   {
@@ -208,7 +225,7 @@ public class MainApp {
 		   }
 	}
 	
-	private static void CalculateDistanceFromSameArticles(Paper newPaper)
+	private void CalculateDistanceFromSameArticles(Paper newPaper)
 	{ 	
 		   double DZVt=0;
 	 	   for(Part paperPart1:newPaper.getParts())
@@ -313,6 +330,22 @@ public static Paper createOnePaper(String file_name,File path,Dictionary dic) th
       return p;
 }
 
+
+public static Paper createOneNewPaper(String file_name,String Filepath,Dictionary dic) throws IOException, SQLException
+{
+	  String content;
+	  File file = new File(Filepath);
+	  PDDocument paper=PDDocument.load(file);
+      PDFTextStripper textStripper = new PDFTextStripper();
+      content  = (textStripper.getText(paper)).replaceAll("\\W", "");
+      content = content.replaceAll("\\d", "");
+      paper.close();
+      Paper p=new Paper(content);
+      CreateParts(p,dic.getDic());
+      
+      return p;
+}
+
 private static void CreateParts(Paper paper,ArrayList<String> dic) throws SQLException
 { //adding parts arraylist to a specific paper with option to insert all of the information to DB (dbconn.createparts function)
 	  Part part = null;
@@ -361,7 +394,7 @@ public static float calculateSpearman(Histogram a,Histogram b)
 	temp3=a.getFreq().length;
 	temp2=(long) Math.pow(temp3,2);
 	temp2=temp3*(temp2-1);
-	SpearmanCor=(SpearmanCor/temp2)*10000000; //6*sigma(di^2)/n*(n^2-1)
+	SpearmanCor=(SpearmanCor/temp2)*100000000; //6*sigma(di^2)/n*(n^2-1)
 	
 	return SpearmanCor;//spearman(di)
 	

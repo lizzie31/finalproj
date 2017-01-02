@@ -29,7 +29,7 @@ public class DBconn {
 	public  void openConnectionDB(){
 		
 		String url="jdbc:sqlserver://localhost:1433" ;
-		String username="try";
+		String username="root";
 		String password="123456";
 
 	    try 

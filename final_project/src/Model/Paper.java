@@ -8,6 +8,14 @@ public class Paper {
 	private ArrayList<Part> parts;
 	private int PaperNumber;
 	
+	
+	public Paper(String content)
+	{
+		
+		this.content=content;
+		this.parts = new ArrayList<Part>();
+	}
+	
 	public Paper(int Papernumber)
 	{
 	  this.PaperNumber=Papernumber;
