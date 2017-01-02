@@ -48,7 +48,8 @@ public class LoadFileWindow extends JFrame implements ActionListener  {
 	private JFileChooser fileChooser= new JFileChooser();
 	private String filePath;
 	private String fileName;
-	private JButton btnBrowse;
+	private JButton btnBrowse;	
+	StringBuilder sb = new StringBuilder();
 	private int flag=2;
 	/**
 	 * Launch the application.
@@ -111,12 +112,11 @@ public class LoadFileWindow extends JFrame implements ActionListener  {
 		
 		btnBrowse = new JButton("Browse");
 		btnBrowse.addActionListener(new ActionListener() {
+		
 			
 			public void actionPerformed(ActionEvent e) {
 				
-				
-				StringBuilder sb = new StringBuilder();
-				
+			
 				
 				try{
 					
@@ -124,8 +124,17 @@ public class LoadFileWindow extends JFrame implements ActionListener  {
 						
 						 File file =fileChooser.getSelectedFile();						
 						 filePath = file.getPath();
-						sb.append(fileChooser.getSelectedFile().getName());
-					     fileName = fileChooser.getSelectedFile().getName();
+						  fileName = fileChooser.getSelectedFile().getName();
+						  
+						  if(fileName.contains(".pdf")==false)
+					       {
+					    	   JOptionPane.showMessageDialog(frame, "Please enter only pdf file", "Warning",
+								        JOptionPane.WARNING_MESSAGE);  
+					       }
+						  else	sb.append(fileChooser.getSelectedFile().getName());
+					   
+					     
+					     
 						 }
 						
 					
@@ -160,11 +169,18 @@ public class LoadFileWindow extends JFrame implements ActionListener  {
 	public void actionPerformed(ActionEvent ae) {
 		
 		Loading l = new Loading();
-		l.setVisible(true);
+		
 		
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 		    @Override
 		    public void run() {
+		    	if(fileName==null)
+		    	{
+		    		JOptionPane.showMessageDialog(getContentPane(), "Please insert file", "Warning",
+					        JOptionPane.WARNING_MESSAGE);
+		    	}
+		   else{
+			l.setVisible(true);
 		    MainApp MA = new MainApp(filePath,fileName);
 		    	
 			try {
@@ -188,9 +204,9 @@ public class LoadFileWindow extends JFrame implements ActionListener  {
 				new ByGneratorMessege().setVisible(true);
 			}
 		    }	
-		
+		    }
 		});
-			
+				
 	}
 	
 		
