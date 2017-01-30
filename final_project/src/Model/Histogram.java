@@ -6,7 +6,7 @@ public class Histogram {
     
     // Create a new histogram. 
     public Histogram(int n) {
-        freq = new int[n+1];
+        freq = new int[n+1];      // 
     }
 
 	public Histogram(int[] histogram) {

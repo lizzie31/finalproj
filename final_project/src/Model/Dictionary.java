@@ -6,7 +6,7 @@ import java.util.ArrayList;
 public class Dictionary {
 	
 
-	private ArrayList<String> Dic;
+	private ArrayList<String> Dic;  //all 3-grams dictionary 
 	
 	  public Dictionary(ArrayList<String> dic) {
 		  this.Dic=dic;

@@ -7,12 +7,12 @@ import final_project.DBconn;
 
 public class Part {
 	
- private String text;
- private int PaperNumner; 
+ private String text;        //the content of the part
+ private int PaperNumner;     // the paper this part belong
  private int PartNumber;
- private Histogram histo;
- private double DistanceFromPrev;
- private double StandartDevesion=0;
+ private Histogram histo;        //the histograma of this part 
+ private double DistanceFromPrev; // the distance from his T prev (ZVt)
+ private double StandartDevesion=0;// if it the center part 
  
  public double getStandartDevesion() {
 	return StandartDevesion;

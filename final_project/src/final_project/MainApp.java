@@ -22,16 +22,16 @@ import Model.Part;
 
 public class MainApp {
 	
-	public static final int T=5;
-	public static final int K=10;
-	public static final int N=81;
+	public static final int T=5; // for ZVt formula , number of previous papers
+	
+	public static final int N=81; //number of papers parst in our db;
 	
 	public static  DBconn DbConn=new DBconn();
-    public  ArrayList<Paper> papers= new ArrayList<Paper>();
-    public  ArrayList<Part> AllParts=new ArrayList<Part>();
-	public  Dictionary dic;
+    public  ArrayList<Paper> papers= new ArrayList<Paper>();  //array of all papers
+    public  ArrayList<Part> AllParts=new ArrayList<Part>();  // array of all parts
+	public  Dictionary dic;               // N-gram dic of all 3-grams 
 	public  Part CenterPart;
-	public  String FilePath;
+	public  String FilePath;               //new file path
 	public  String FileName;
 	
      public MainApp(String FilePath, String FileName){
@@ -41,7 +41,7 @@ public class MainApp {
          this.FileName = FileName;
      }
      
-     public int Start() throws IOException, SQLException
+     public int[] Start() throws IOException, SQLException
  	{	   
  	   
        // MainApp MA= new MainApp();
@@ -50,11 +50,10 @@ public class MainApp {
         papers=DbConn.GetPapersFromDB(dic);
         AllParts=DbConn.GetPartsFromDB(dic);; 
   	   
-   Paper newPaper=createOneNewPaper(FileName,FilePath,dic);
+   Paper newPaper=createOneNewPaper(FileName,FilePath,dic);         //Preparing the given paper for using
   // FindCenterpPartInCloude(AllParts,papers); 
   	 CenterPart = DbConn.getCenterPart(dic.getDic().size());
 
-  	 // CheckOnePpaper1(newPaper,papers);
   	
    return  CheckOnePpaper2(CenterPart,newPaper,papers); 
  	  
@@ -62,7 +61,7 @@ public class MainApp {
 	
 	
 
-	public double calculateDZVt(Paper paper1,Paper paper2,int PartNumber1,int PartNumber2,int j)
+	public double calculateDZVt(Paper paper1,Paper paper2,int PartNumber1,int PartNumber2,int j) //compute distance between 2 different pars (DZVt) 
 	{
 		
 		      double zvt1=0;
@@ -96,23 +95,23 @@ public class MainApp {
 			});
 	     }
     }
-	private int CheckOnePpaper2(Part centerPart, Paper newPaper, ArrayList<Paper> papers) {
+	private int[] CheckOnePpaper2(Part centerPart, Paper newPaper, ArrayList<Paper> papers) {
 		
 		int [] flagsArr = new int[newPaper.getParts().size()-T];
 		int k =0;
 		double DZVt=0;
-		Paper CenterPartPaper = papers.get(centerPart.getPaperNumner()-1);
-		for(Part paperPart1:newPaper.getParts())
+		Paper CenterPartPaper = papers.get(centerPart.getPaperNumner()-1); //get the center part from DB
+		for(Part paperPart1:newPaper.getParts())  //go throw of all new paper's parts and calculate the distance to the center part in the cloud  
 	 	{
 			 int j = centerPart.getPartNumber();
 			 DZVt = 0;
 	 	     if(paperPart1.getPartNumber()>T)
 	 	     {	
 	 	    	     DZVt=calculateDZVt(CenterPartPaper,newPaper,centerPart.getPartNumber(),paperPart1.getPartNumber(),j);
-					 DZVt = DZVt/centerPart.getStandartDevesion();
+					 DZVt = DZVt/centerPart.getStandartDevesion();             // check if the distance is bigger the standard devision*2 
 					 if(DZVt>2)
-					      flagsArr[k]=1;
-                     else flagsArr[k]=0;
+					      flagsArr[k]=1;                      //if bigger put 1 (out of cloud)
+                     else flagsArr[k]=0;                     //else , o - in the cloud
 					 k++;
 	 	     }
 	 	 	   		 		 
@@ -121,23 +120,24 @@ public class MainApp {
 			
 		}
 
-		private int CheckFlags(int[] flagsArr) {
+		private int[] CheckFlags(int[] flagsArr) {         //check how much parts are in/out the cloud. if more then half out this paper is real  
 			
 			int counter=0;
 			  for(int i = 0; i< flagsArr.length; i++)
 			   {
 				  if(flagsArr[i]==1) counter++;
 			   }
-			if (counter  >= flagsArr.length/2)
+			  return flagsArr;
+			/*if (counter  >= flagsArr.length/2)
 			{
 				return 1;
 			}
-			else return 0;
+			else return 0;*/
 		}
 		
 	
 
-	private void FindCenterpPartInCloude(ArrayList<Part> allParts, ArrayList<Paper> papers) throws SQLException {
+	private void FindCenterpPartInCloude(ArrayList<Part> allParts, ArrayList<Paper> papers) throws SQLException {  // we call this func just one time and save this part in DB  
 		double MinDistance = 0;
 		  double DZVt=0;
 		  double nowDZVt=0;
@@ -148,108 +148,48 @@ public class MainApp {
 		double MinDZvtPow = 0;
 		double StandartDevision = 0;
 		
-		   for(Part SelectedPart:allParts)
+		   for(Part SelectedPart:allParts)   // go throw all parts in DB 
 		   {
 			
 			  Paper SelectedPartPaper = papers.get(SelectedPart.getPaperNumner()-1);
-			   for(Part dbPart:allParts)
+			   for(Part dbPart:allParts)           //  for each part compute distance to all parts in DB
 			   {  
 				   
 			   Paper dbPartPaper = papers.get(dbPart.getPaperNumner()-1);
 			   int j=dbPart.getPartNumber()-1;
-			   nowDZVt=calculateDZVt(SelectedPartPaper,dbPartPaper,SelectedPart.getPartNumber(),dbPart.getPartNumber(),j);
-		       DZvtPow = DZvtPow + Math.pow((nowDZVt), 2);
-		       DZVt=DZVt+(Math.abs(nowDZVt)); 
+			   nowDZVt=calculateDZVt(SelectedPartPaper,dbPartPaper,SelectedPart.getPartNumber(),dbPart.getPartNumber(),j); //calculate the distance 
+		       DZvtPow = DZvtPow + Math.pow((nowDZVt), 2);  //Compute (distance)^2 for standard devision if needed 
+		       DZVt=DZVt+(Math.abs(nowDZVt));           // sum all distance of specific part to all part in DB  
 		       nowDZVt=0;
 			   }
-			   DZVt=DZVt/N;
-			   if (firstPartFlag ==1)
+			   DZVt=DZVt/N;           //sum of all distance/N (N-number off all part)
+			   if (firstPartFlag ==1)       //if we are checking the first part
 			   {
-				   MinDistance = DZVt;
-				   firstPartFlag=0;
+				   MinDistance = DZVt;     //save the sum as min
+				   firstPartFlag=0;         // 
 				   Part p = new Part(null,SelectedPart.getPaperNumner()-1,SelectedPart.getPartNumber(),SelectedPart.getHistogram(),SelectedPart.getDistanceFromPrev());
-				   MinPart=p;
-				   MinDZvtPow = DZvtPow;
+				   MinPart=p;   // save this part as the center part
+				   MinDZvtPow = DZvtPow;    // save for standard devision if needed
 			   }
-			   else if(DZVt<MinDistance)
+			   else if(DZVt<MinDistance)     //check if  the current   distance sum is bigger from the current minimum
 			  {
 				 MinDistance = DZVt;
 				 MinPart  = new Part(null,SelectedPart.getPaperNumner()-1,SelectedPart.getPartNumber(),SelectedPart.getHistogram(),SelectedPart.getDistanceFromPrev());
 				 MinDZvtPow = 	DZvtPow;			
 			  }
-			  StandartDevision =Math.sqrt(MinDZvtPow/N);
+			  StandartDevision =Math.sqrt(MinDZvtPow/N); // compute standard devision
 			  DZVt = 0;
 			  DZvtPow=0;
 		   }
 		   
-		   DbConn.InsertCenterPoint(MinPart,StandartDevision);
+		   DbConn.InsertCenterPoint(MinPart,StandartDevision); //save the center part we find in DB 
 		
 	}
 
 
-
-	public void CheckOnePpaper1(Paper paper, ArrayList<Paper> papers)
-	{
-		   CalculateDistanceFromDBArticles(paper,papers);
-	 	   CalculateDistanceFromSameArticles(paper);   
-	 	   UpdateGeneratorFlag(paper);	
-	}
-	
-	public void UpdateGeneratorFlag(Paper newPaper)
-	{
-		  for(int t=T;t<newPaper.getParts().size();t++)
-		   {
-	 		  int k=0;
-	 		  int j=0;
-	 		  Part paperPart=newPaper.getParts().get(t);
-		      for(int i=0;i<K;i++)
-		      {
-		    	 if((paperPart.getDistanceFromDBArticles()!=null)&&(paperPart.getDistanceFromCurrArticle()!= null))
-		    	 {
-		    		if( paperPart.getDistanceFromCurrArticle().size()<k)
-		    		{
-		    	 if(paperPart.getDistanceFromDBArticles().get(j)<paperPart.getDistanceFromCurrArticle().get(k))
-		    		 j++;
-		    	 else k++;
-		    	 }
-		    	 }
-		    		 
-		      }
-		     
-		     if(j>k)
-		    	 paperPart.setGeneratorFlag(1);
-		     else
-		    	 paperPart.setGeneratorFlag(0);
-		     
-		     System.out.println(paperPart.getGeneratorFlag());
-		   }
-	}
-	
-	private void CalculateDistanceFromSameArticles(Paper newPaper)
-	{ 	
-		   double DZVt=0;
-	 	   for(Part paperPart1:newPaper.getParts())
-	 	   {
-	 		  List<Double> distanceFromSamePaper=new ArrayList<>();
-	 	     if(paperPart1.getPartNumber()>T)
-	 	     {
-	 	 	   for(int j=T+1;j<newPaper.getParts().size();j++)
-	 	 	   {
-	 	 		   
-	 	 		   DZVt=calculateDZVt(newPaper,newPaper,paperPart1.getPartNumber(),j,j);
-				   distanceFromSamePaper.add(DZVt);
-	 		   }
-	 	 	 }
-				     Collections.sort(distanceFromSamePaper); 
-		 		     paperPart1.setDistanceFromCurrArticle(distanceFromSamePaper);		 		  
-	 	   }
-	 	   
-	 	   
-	}
-	
 	
 
-private static void CalculateDistanceFromDBArticles(Paper newPaper,ArrayList<Paper> papers)
+/*private static void CalculateDistanceFromDBArticles(Paper newPaper,ArrayList<Paper> papers)
 {
 	   Collections.sort(newPaper.getParts(), new Comparator<Part>() {
         @Override
@@ -314,18 +254,18 @@ private static ArrayList<Paper> CreatePapers(Dictionary d) throws IOException, S
     return papers;
     	
     
- }
+ }*/
 
-public static Paper createOnePaper(String file_name,File path,Dictionary dic) throws IOException, SQLException
+public static Paper createOnePaper(String file_name,File path,Dictionary dic) throws IOException, SQLException  //Prepare new paper for use
 {
 	  String content;
 	  PDDocument paper=PDDocument.load(path);
-      PDFTextStripper textStripper = new PDFTextStripper();
-      content  = (textStripper.getText(paper)).replaceAll("\\W", "");
-      content = content.replaceAll("\\d", "");
+      PDFTextStripper textStripper = new PDFTextStripper();   //convert pdf to text
+      content  = (textStripper.getText(paper)).replaceAll("\\W", "");// remove all punctuation and spaces
+      content = content.replaceAll("\\d", "");                  // remove all numbers
       paper.close();
-      Paper p=new Paper(content,Integer.parseInt(file_name));
-      CreateParts(p,dic.getDic());
+      Paper p=new Paper(content,Integer.parseInt(file_name));  //save the new paper
+      CreateParts(p,dic.getDic());                   //parts devision of this paper
       
       return p;
 }
@@ -379,7 +319,7 @@ private static void CreateParts(Paper paper,ArrayList<String> dic) throws SQLExc
 	    	
 }
 
-public static float calculateSpearman(Histogram a,Histogram b)
+public static float calculateSpearman(Histogram a,Histogram b) //for DZVt formula
 {
 	
 	float SpearmanCor=0;
@@ -414,7 +354,7 @@ public static Histogram CreateHistogram(ArrayList<String> dic,String content)
 	 return histo;
 }
 
-public static Dictionary CreateNgramsDic() throws SQLException, IOException 
+public static Dictionary CreateNgramsDic() throws SQLException, IOException  //we call this func just one time and save the 3-gram dic in DB 
 {//creating ngrams dictionary and inserting it to DB
 	 String str=null;
 	 int flag;
@@ -422,21 +362,20 @@ public static Dictionary CreateNgramsDic() throws SQLException, IOException
 	 String file_name;
 	 String content = "";
 	 
-	 for (int i=1; i<12;i++)
+	 for (int i=1; i<12;i++) //go throw of all generator papers in db and  each one for use 
 	 {
 		file_name = Integer.toString(i);
 		File path=new File("C:/articles/"+ file_name + ".pdf");
 		PDDocument paper=PDDocument.load(path);
 	    PDFTextStripper textStripper = new PDFTextStripper();
-	    content  = (textStripper.getText(paper)).replaceAll("\\W", "");
-	    content = content.replaceAll("\\d", "");
+	    content  =content+ (textStripper.getText(paper)); // append all papers 
 	    paper.close();
 	 }
 	 
-	 String StrWithoutpunctuation = content.replaceAll("\\W", "");
-	 StrWithoutpunctuation = StrWithoutpunctuation.replaceAll("\\d", "");
+	 String StrWithoutpunctuation = content.replaceAll("\\W", "");//remove punctuation and spaces 
+	 StrWithoutpunctuation = StrWithoutpunctuation.replaceAll("\\d", "");   // // remove all numbers
 	 
-	 for (int i=1;i<StrWithoutpunctuation.length()-3;i++)
+	 for (int i=1;i<StrWithoutpunctuation.length()-3;i++) // go throw all the papers text and get all 3-grams in dic
 	 {
 		 str = StrWithoutpunctuation.substring(i,i+3);
 			
@@ -448,7 +387,7 @@ public static Dictionary CreateNgramsDic() throws SQLException, IOException
 		
 	 }
 	 
-	 DbConn.createDBDictionary(d);
+	 DbConn.createDBDictionary(d); //save the dic in DB
 	 return d;
 }
 

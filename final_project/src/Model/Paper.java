@@ -4,9 +4,9 @@ import java.util.ArrayList;
 
 public class Paper {
 	
-	private String content;
-	private ArrayList<Part> parts;
-	private int PaperNumber;
+	private String content;  //the content of the paper
+	private ArrayList<Part> parts;  // all the parts from this paper after devision
+	private int PaperNumber; 
 	
 	
 	public Paper(String content)

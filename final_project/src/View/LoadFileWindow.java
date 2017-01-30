@@ -2,6 +2,7 @@ package View;
 
 import java.awt.EventQueue;
 
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
@@ -45,11 +46,14 @@ import java.awt.SystemColor;
 public class LoadFileWindow extends JFrame implements ActionListener  {
 
 	//private JFrame frmApp;
-	private JFileChooser fileChooser= new JFileChooser();
+	private JFileChooser fileChooser= new JFileChooser(); 
 	private String filePath;
 	private String fileName;
 	private JButton btnBrowse;	
+	private int[] flagsArr =null;       //result arr
+	private int counter = 0;   // count how many part were out of cloud
 	StringBuilder sb = new StringBuilder();
+	JTextArea textArea;
 	private int flag=2;
 	/**
 	 * Launch the application.
@@ -87,22 +91,29 @@ public class LoadFileWindow extends JFrame implements ActionListener  {
 		setBounds(100, 100, 649, 330);
 		Container frame = getContentPane();
 	    JPanel jp = new JPanel();
-		
+		//Image img = null;
 	    jp.setBackground(new Color(204, 204, 255));
 		jp.setLayout(null);
 		
-		JTextArea textArea = new JTextArea();
+		textArea = new JTextArea();
 		textArea.setBounds(259, 170, 150, 19);
 		jp.add(textArea);
 		
 		JLabel label = new JLabel("");
-	    Image img = new ImageIcon(this.getClass().getResource("/ort.png")).getImage();
+		
+
+
+
+		
+	   ImageIcon img = new ImageIcon(getClass().getClassLoader().getResource("resources/img/ort.png"));
+    
+	  // dlabel = new JLabel(new ImageIcon(getClass().getClassLoader().getResource("resources/images/logo.png")));
 		JLabel lblWelcome = new JLabel("Detecting of artificially generated scientific manuscripts");
 		lblWelcome.setHorizontalAlignment(SwingConstants.CENTER);
 		lblWelcome.setFont(new Font("Segoe Print", Font.BOLD, 18));
 		lblWelcome.setBounds(86, 94, 504, 33);
 		jp.add(lblWelcome);
-		label.setIcon(new ImageIcon( img));
+		label.setIcon(img);
 		label.setBounds(259, -23, 150, 150);
 		jp.add(label);
 		
@@ -126,14 +137,15 @@ public class LoadFileWindow extends JFrame implements ActionListener  {
 						 filePath = file.getPath();
 						  fileName = fileChooser.getSelectedFile().getName();
 						  
-						  if(fileName.contains(".pdf")==false)
+						  if(fileName.contains(".pdf")==false)                 //check if it pdf file
 					       {
 					    	   JOptionPane.showMessageDialog(frame, "Please enter only pdf file", "Warning",
-								        JOptionPane.WARNING_MESSAGE);  
+								        JOptionPane.WARNING_MESSAGE); 
+					    	   fileName=null;
 					       }
-						  else	sb.append(fileChooser.getSelectedFile().getName());
-					   
-					     
+						  else							  
+							  sb.append(fileChooser.getSelectedFile().getName());     // shoe the chosen file name
+					   					     
 					     
 						 }
 						
@@ -168,12 +180,14 @@ public class LoadFileWindow extends JFrame implements ActionListener  {
 	
 	public void actionPerformed(ActionEvent ae) {
 		
-		Loading l = new Loading();
+		Loading l = new Loading(); //show loadin window
 		
 		
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 		    @Override
 		    public void run() {
+		    	
+		    	
 		    	if(fileName==null)
 		    	{
 		    		JOptionPane.showMessageDialog(getContentPane(), "Please insert file", "Warning",
@@ -184,24 +198,33 @@ public class LoadFileWindow extends JFrame implements ActionListener  {
 		    MainApp MA = new MainApp(filePath,fileName);
 		    	
 			try {
-				flag= MA.Start();
+				flagsArr = MA.Start();                          //start app
 			} catch (IOException | SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			while (flag == 2) {
+			while (flagsArr == null) {  //wait for result
 				
 			}
 			
-			if(flag==1) 
+			for(int i=0; i<flagsArr.length;i++)
+				if(flagsArr[i]==1) counter++;
+			
+			if(counter > (flagsArr.length)/2)      
 			{
 				l.dispose();
-				new ByhumanMessege().setVisible(true);
+				new ByhumanMessege(counter,flagsArr.length).setVisible(true);
+				counter =0;
+				flagsArr=null;	
+				textArea.setText(null);
 			}
 		
 			else{
 				l.dispose();
-				new ByGneratorMessege().setVisible(true);
+				new ByGneratorMessege(counter,flagsArr.length).setVisible(true);
+				counter =0;
+				flagsArr=null;
+				textArea.setText(null);
 			}
 		    }	
 		    }
@@ -211,10 +234,6 @@ public class LoadFileWindow extends JFrame implements ActionListener  {
 	
 		
 
-		
-
-	
-	
 
 	public static void centreWindow(Window frame) {
 	    Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
@@ -247,7 +266,7 @@ class Loading  extends JFrame  {
 		setBounds(200, 200, 334, 150);
 		setSize(384,146);
 		//centreWindow(frame);
-	
+     
 			
 		
 		Container frame = getContentPane();
@@ -257,12 +276,13 @@ class Loading  extends JFrame  {
 				jp.setLayout(null);
 	    
 		JLabel label = new JLabel("");
-	  Image img = new ImageIcon(this.getClass().getResource("/clock.gif")).getImage();
-		label.setIcon(new ImageIcon( img));
+		
+		 ImageIcon img = new ImageIcon(getClass().getClassLoader().getResource("resources/img/clock.gif"));
+		label.setIcon( img);
 		label.setBounds(10, 11, 76, 77);
 		jp.add(label);
 		
-		JLabel lblK = new JLabel("Please Wait...Laoding...");
+		JLabel lblK = new JLabel("Please Wait...Loading...");
 		lblK.setFont(new Font("Segoe Print", Font.BOLD, 18));
 		lblK.setBounds(102, 35, 211, 38);
 		jp.add(lblK);
